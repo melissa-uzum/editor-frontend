@@ -5,9 +5,8 @@ import Editor from "./pages/Editor";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-const basename = process.env.PUBLIC_URL
-  ? new URL(process.env.PUBLIC_URL).pathname
-  : "/";
+const basename =
+  (process.env.PUBLIC_URL && process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, "")) || "/";
 
 export default function App() {
   return (

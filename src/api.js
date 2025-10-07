@@ -1,25 +1,63 @@
-const BASE = process.env.REACT_APP_API_URL || "";
+const BASE = (process.env.REACT_APP_API_URL || "http://localhost:3000").replace(/\/+$/, "");
 
-async function http(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok && res.status !== 204) {
+function toId(x) {
+  return x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
+}
+
+async function getJSON(url, opts = {}) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
     throw new Error(msg || `HTTP ${res.status}`);
   }
-  return res.status === 204 ? null : res.json();
+  return res.json();
+}
+
+function urlencode(obj) {
+  return new URLSearchParams(obj).toString();
 }
 
 export const api = {
-  listDocs: () => http("/api/docs").then(r => r.data),
-  getDoc: (id) => http(`/api/docs/${id}`).then(r => r.data),
-  createDoc: (payload) =>
-    http("/api/docs", { method: "POST", body: JSON.stringify(payload) })
-      .then(r => r.data),
-  updateDoc: (id, payload) =>
-    http(`/api/docs/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
-  deleteDoc: (id) =>
-    http(`/api/docs/${id}`, { method: "DELETE" }),
+  async listDocs() {
+    const data = await getJSON(`${BASE}/list`, { credentials: "include" });
+    const arr = Array.isArray(data) ? data : (data?.data ?? []);
+    return arr.map(d => ({ ...d, id: String(toId(d) ?? d.id) }));
+  },
+
+  async getDoc(id) {
+    const list = await this.listDocs();
+    const hit = list.find(d => String(d.id) === String(id));
+    if (!hit) throw new Error("Not Found");
+    return hit;
+  },
+
+  async createDoc(payload) {
+    const res = await fetch(`${BASE}/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: urlencode(payload),
+      redirect: "follow",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const url = new URL(res.url);
+    const id = url.pathname.replace(/^\/+/, "");
+    return { id, ...payload };
+  },
+
+  async updateDoc(id, payload) {
+    const res = await fetch(`${BASE}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: urlencode({ id, ...payload }),
+      redirect: "follow",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return null;
+  },
+
+  async deleteDoc() {
+    throw new Error("Delete not supported by backend");
+  },
 };

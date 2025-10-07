@@ -2,8 +2,7 @@
   "name": "editor-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://melissa-uzum.github.io/editor-frontend",
-  "dependencies": {
+"homepage": "https://melissa-uzum.github.io/editor-frontend",  "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
