@@ -7,7 +7,6 @@ async function getJSON(url, opts = {}) {
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...opts,
-    credentials: "include",
   });
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
