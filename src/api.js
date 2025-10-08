@@ -1,6 +1,11 @@
 const BASE = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
-const join = (p) => `${BASE}${p.startsWith("/") ? p : `/${p}`}`;
-const toId = (x) => x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
+
+const norm = (p) => (p.startsWith("/") ? p : `/${p}`);
+const join = (p) => `${BASE}${norm(p)}`;
+const joinApi = (p) => `${BASE}/api${norm(p)}`;
+
+const toId = (x) =>
+  x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
 const unwrap = (x) => (x && typeof x === "object" && "data" in x ? x.data : x);
 
 async function getJSON(url, opts = {}) {
@@ -18,17 +23,36 @@ async function getJSON(url, opts = {}) {
   return res.status === 204 ? null : unwrap(await res.json());
 }
 
+async function getJSONEither(path, opts = {}) {
+  try {
+    return await getJSON(join(path), opts);
+  } catch (e) {
+    if (e.status === 404) {
+      return await getJSON(joinApi(path), opts);
+    }
+    throw e;
+  }
+}
+
+async function fetchEither(path, opts = {}) {
+  let res = await fetch(join(path), opts);
+  if (res.status === 404) {
+    res = await fetch(joinApi(path), opts);
+  }
+  return res;
+}
+
 function urlencode(obj) {
   return new URLSearchParams(obj).toString();
 }
 
 async function tryListDocs() {
   try {
-    const data = await getJSON(join("/docs"));
+    const data = await getJSONEither("/docs");
     return Array.isArray(data) ? data : [];
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/list"), { credentials: "include" });
+      const res = await fetchEither("/list", { credentials: "include" });
       if (!res.ok) throw e;
       const json = await res.json();
       const data = Array.isArray(json) ? json : unwrap(json) ?? [];
@@ -40,7 +64,7 @@ async function tryListDocs() {
 
 async function tryGetDoc(id) {
   try {
-    const data = await getJSON(join(`/docs/${encodeURIComponent(id)}`));
+    const data = await getJSONEither(`/docs/${encodeURIComponent(id)}`);
     return data;
   } catch (e) {
     if (e.status === 404) {
@@ -55,14 +79,14 @@ async function tryGetDoc(id) {
 
 async function tryCreateDoc(payload) {
   try {
-    const data = await getJSON(join("/docs"), {
+    const data = await getJSONEither("/docs", {
       method: "POST",
       body: JSON.stringify(payload),
     });
     return data;
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/"), {
+      const res = await fetchEither("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode(payload),
@@ -80,13 +104,13 @@ async function tryCreateDoc(payload) {
 
 async function tryUpdateDoc(id, payload) {
   try {
-    await getJSON(join(`/docs/${encodeURIComponent(id)}`), {
+    await getJSONEither(`/docs/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     });
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/update"), {
+      const res = await fetchEither("/update", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode({ id, ...payload }),
