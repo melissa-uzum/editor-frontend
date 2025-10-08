@@ -4,11 +4,38 @@ const toId = (x) =>
   x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
 const unwrap = (x) => (x && typeof x === "object" && "data" in x ? x.data : x);
 
+function isDebug() {
+  try {
+    return localStorage.getItem("API_DEBUG") === "1";
+  } catch (_) {
+    return false;
+  }
+}
+function dbg(...args) {
+  if (isDebug()) {
+    console.log("[api]", ...args);
+  }
+}
+
 async function getJSON(url, opts = {}) {
-  const res = await fetch(url, {
+  const init = {
     headers: { "Content-Type": "application/json" },
     ...opts,
-  });
+  };
+
+  const method = (init.method || "GET").toUpperCase();
+  const previewBody =
+    typeof init.body === "string" && init.body.length <= 500
+      ? init.body
+      : init.body
+      ? "[large body]"
+      : undefined;
+  dbg(method, url, previewBody);
+
+  const res = await fetch(url, init);
+
+  dbg("→", res.status, res.statusText, url);
+
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
     const err = new Error(msg || `HTTP ${res.status}`);
@@ -25,11 +52,13 @@ function urlencode(obj) {
 
 async function tryListDocs() {
   try {
-    const data = await getJSON(join("/docs"));
-    return Array.isArray(data) ? data : [];
+    const url = join("/docs");
+    return await getJSON(url).then((data) => (Array.isArray(data) ? data : []));
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/list"), { credentials: "include" });
+      const url = join("/list");
+      dbg("fallback GET", url);
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw e;
       const json = await res.json();
       return Array.isArray(json) ? json : unwrap(json) ?? [];
@@ -39,8 +68,9 @@ async function tryListDocs() {
 }
 
 async function tryGetDoc(id) {
+  const url = join(`/docs/${encodeURIComponent(id)}`);
   try {
-    return await getJSON(join(`/docs/${encodeURIComponent(id)}`));
+    return await getJSON(url);
   } catch (e) {
     if (e.status === 404) {
       const list = await tryListDocs();
@@ -53,14 +83,19 @@ async function tryGetDoc(id) {
 }
 
 async function tryCreateDoc(payload) {
+  dbg("create payload", payload);
+
   try {
-    return await getJSON(join("/docs"), {
+    const url = join("/docs");
+    return await getJSON(url, {
       method: "POST",
       body: JSON.stringify(payload),
     });
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/"), {
+      const url = join("/");
+      dbg("fallback POST form", url, payload);
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode(payload),
@@ -68,8 +103,8 @@ async function tryCreateDoc(payload) {
         credentials: "include",
       });
       if (!res.ok) throw e;
-      const url = new URL(res.url);
-      const id = url.pathname.replace(/^\/+/, "");
+      const loc = new URL(res.url);
+      const id = loc.pathname.replace(/^\/+/, "");
       return { id, ...payload };
     }
     throw e;
@@ -77,14 +112,19 @@ async function tryCreateDoc(payload) {
 }
 
 async function tryUpdateDoc(id, payload) {
+  dbg("update payload", { id, ...payload });
+
   try {
-    await getJSON(join(`/docs/${encodeURIComponent(id)}`), {
+    const url = join(`/docs/${encodeURIComponent(id)}`);
+    await getJSON(url, {
       method: "PUT",
       body: JSON.stringify(payload),
     });
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetch(join("/update"), {
+      const url = join("/update");
+      dbg("fallback POST form", url, { id, ...payload });
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode({ id, ...payload }),
