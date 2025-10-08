@@ -1,9 +1,5 @@
 const BASE = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
-
-const norm = (p) => (p.startsWith("/") ? p : `/${p}`);
-const join = (p) => `${BASE}${norm(p)}`;
-const joinApi = (p) => `${BASE}/api${norm(p)}`;
-
+const join = (p) => `${BASE}${p.startsWith("/") ? p : `/${p}`}`;
 const toId = (x) =>
   x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
 const unwrap = (x) => (x && typeof x === "object" && "data" in x ? x.data : x);
@@ -23,40 +19,20 @@ async function getJSON(url, opts = {}) {
   return res.status === 204 ? null : unwrap(await res.json());
 }
 
-async function getJSONEither(path, opts = {}) {
-  try {
-    return await getJSON(join(path), opts);
-  } catch (e) {
-    if (e.status === 404) {
-      return await getJSON(joinApi(path), opts);
-    }
-    throw e;
-  }
-}
-
-async function fetchEither(path, opts = {}) {
-  let res = await fetch(join(path), opts);
-  if (res.status === 404) {
-    res = await fetch(joinApi(path), opts);
-  }
-  return res;
-}
-
 function urlencode(obj) {
   return new URLSearchParams(obj).toString();
 }
 
 async function tryListDocs() {
   try {
-    const data = await getJSONEither("/docs");
+    const data = await getJSON(join("/docs"));
     return Array.isArray(data) ? data : [];
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetchEither("/list", { credentials: "include" });
+      const res = await fetch(join("/list"), { credentials: "include" });
       if (!res.ok) throw e;
       const json = await res.json();
-      const data = Array.isArray(json) ? json : unwrap(json) ?? [];
-      return data;
+      return Array.isArray(json) ? json : unwrap(json) ?? [];
     }
     throw e;
   }
@@ -64,8 +40,7 @@ async function tryListDocs() {
 
 async function tryGetDoc(id) {
   try {
-    const data = await getJSONEither(`/docs/${encodeURIComponent(id)}`);
-    return data;
+    return await getJSON(join(`/docs/${encodeURIComponent(id)}`));
   } catch (e) {
     if (e.status === 404) {
       const list = await tryListDocs();
@@ -79,14 +54,13 @@ async function tryGetDoc(id) {
 
 async function tryCreateDoc(payload) {
   try {
-    const data = await getJSONEither("/docs", {
+    return await getJSON(join("/docs"), {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    return data;
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetchEither("/", {
+      const res = await fetch(join("/"), {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode(payload),
@@ -104,13 +78,13 @@ async function tryCreateDoc(payload) {
 
 async function tryUpdateDoc(id, payload) {
   try {
-    await getJSONEither(`/docs/${encodeURIComponent(id)}`, {
+    await getJSON(join(`/docs/${encodeURIComponent(id)}`), {
       method: "PUT",
       body: JSON.stringify(payload),
     });
   } catch (e) {
     if (e.status === 404) {
-      const res = await fetchEither("/update", {
+      const res = await fetch(join("/update"), {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: urlencode({ id, ...payload }),
@@ -129,24 +103,20 @@ export const api = {
     const arr = await tryListDocs();
     return arr.map((d) => ({ ...d, id: String(toId(d) ?? d.id) }));
   },
-
   async getDoc(id) {
     const data = await tryGetDoc(id);
     const normId = String(toId(data) ?? data.id ?? id);
     return { ...data, id: normId };
   },
-
   async createDoc(payload) {
     const data = await tryCreateDoc(payload);
     const normId = String(toId(data) ?? data?.id);
     return { ...data, id: normId };
   },
-
   async updateDoc(id, payload) {
     await tryUpdateDoc(id, payload);
     return null;
   },
-
   async deleteDoc() {
     throw new Error("Delete not supported by backend");
   },
