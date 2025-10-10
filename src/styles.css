@@ -225,19 +225,14 @@ footer {
     margin-top: 1rem;
 }
 
-.fe-app main {
-    max-width: 68rem;
-    margin-inline: auto;
-}
 
 .fe-app .doc-list {
-    list-style: none;
-    padding: 0;
-    margin: 1.5rem auto 0;
-    display: grid;
+    display: grid !important;
     grid-template-columns: 1fr;
     gap: 1rem;
+    margin: 1.5rem auto 0;
     max-width: 60rem;
+    text-align: initial;
 }
 
 @media (min-width: 600px) {
@@ -252,33 +247,6 @@ footer {
     }
 }
 
-.fe-app .doc-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-    padding: 1rem 1.1rem;
-    border: 1px solid #dbe4ee;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
-}
-
-.fe-app .doc-item a {
-    font-weight: 700;
-    color: #0b2545;
-    text-decoration: none;
-}
-
-.fe-app .doc-item a:hover {
-    text-decoration: underline;
-}
-
-.fe-app .doc-item .btn {
-    border-radius: 999px;
-    padding: .55rem .95rem;
-    border: 1px solid #0074D9;
-    background: #0074D9;
-    color: #fff;
-    font-weight: 600;
+.fe-app .doc-list li+li {
+    margin-top: 0 !important;
 }
