@@ -4,7 +4,6 @@ import About from "./pages/About";
 import Editor from "./pages/Editor";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import "./styles.css";
 
 const basename =
   (process.env.PUBLIC_URL && process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, "")) || "/";
