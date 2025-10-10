@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import "./styles.css";
 
 export default function Home() {
   const [docs, setDocs] = useState([]);
@@ -27,19 +26,29 @@ export default function Home() {
   if (loading) return <p>Laddar…</p>;
   if (error) return <p style={{ color: "crimson" }}>Fel: {error}</p>;
 
-return (
-  <>
-    <h1>Dokument</h1>
-    {docs.length === 0 && <p>Inga dokument ännu.</p>}
-    <ul className="doc-list">
-      {docs.map(d => (
-        <li key={d.id} style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <Link to={`/doc/${d.id}`}>{d.title || "(utan titel)"}</Link>
-          <button className="btn" onClick={() => handleDelete(d.id)}>Ta bort</button>
-        </li>
-      ))}
-    </ul>
-    <p><Link className="btn btn-primary" to="/new">+ Skapa nytt</Link></p>
-  </>
-);
+  return (
+    <>
+      <h1>Dokument</h1>
+      {docs.length === 0 && <p>Inga dokument ännu.</p>}
+
+      <ul className="doc-list">
+        {docs.map(d => (
+          <li key={d.id} className="doc-item">
+            <Link to={`/doc/${d.id}`}>{d.title || "(utan titel)"}</Link>
+            <button
+              className="btn"
+              onClick={() => handleDelete(d.id)}
+              aria-label={`Ta bort ${d.title || "dokument"}`}
+            >
+              Ta bort
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <p>
+        <Link className="btn btn-primary" to="/new">+ Skapa nytt</Link>
+      </p>
+    </>
+  );
 }

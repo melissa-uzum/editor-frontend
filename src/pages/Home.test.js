@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Home from "./Home";
+import { api } from "../api";
 
 jest.mock("../api", () => ({
   api: {
@@ -8,7 +9,6 @@ jest.mock("../api", () => ({
   },
 }));
 
-import { api } from "../api";
 
 test("renders Dokument heading", async () => {
   api.listDocs.mockResolvedValueOnce([]);

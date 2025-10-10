@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
-import "./styles.css";
 
 export default function Editor({ mode }) {
   const isCreate = mode === "create";
