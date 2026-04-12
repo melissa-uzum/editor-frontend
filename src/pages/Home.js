@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api";
+import { api } from "../api.gql";
 
 export default function Home() {
   const [docs, setDocs] = useState([]);
