@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../api.gql";
+import { api } from "../api";
 import { auth } from "../auth";
 
 export default function Home() {
