@@ -1,4 +1,5 @@
 import { apollo } from "./graphql/client";
+import { auth } from "./auth";
 import {
   ME, LOGIN, REGISTER,
   DOCS, DOC, CREATE_DOC, UPDATE_DOC, DELETE_DOC,
@@ -30,8 +31,16 @@ export const api = {
   },
 
   async listDocs() {
-    const { data } = await apollo.query({ query: DOCS, fetchPolicy: "network-only" });
-    return (data.documents || []).map(d => ({ ...d, id: String(toId(d)) }));
+    try {
+      const { data } = await apollo.query({ query: DOCS, fetchPolicy: "network-only" });
+      return (data.documents || []).map(d => ({ ...d, id: String(toId(d)) }));
+    } catch (e) {
+      if (e.graphQLErrors?.some(err => err.extensions?.code === 'UNAUTHENTICATED') || e.networkError?.statusCode === 401) {
+        auth.clear();
+        window.location.href = "/login";
+      }
+      throw e;
+    }
   },
 
   async getDoc(id) {
@@ -88,14 +97,15 @@ export const api = {
     return data.createComment;
   },
 
-    async shareDoc(id, email) {
+  async shareDoc(id, email) {
     const { data } = await apollo.mutate({
       mutation: SHARE_DOC,
       variables: { id, email }
     });
     return data.shareDocument;
   },
-    async executeCode(codeBase64) {
+
+  async executeCode(codeBase64) {
     const { data } = await apollo.mutate({
       mutation: EXECUTE_CODE,
       variables: { codeBase64 }

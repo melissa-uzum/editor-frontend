@@ -8,11 +8,10 @@ const httpLink = createHttpLink({
 
 const authLink = setContext((_, { headers }) => {
   const t = auth.getToken();
-
   return {
     headers: {
       ...headers,
-      ...(t ? { Authorization: `Bearer ${t}` } : {}),
+      Authorization: t ? `Bearer ${t}` : "",
     },
   };
 });
@@ -21,11 +20,7 @@ export const apollo = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
   defaultOptions: {
-    watchQuery: {
-      fetchPolicy: 'network-only',
-    },
-    query: {
-      fetchPolicy: 'network-only',
-    },
+    query: { fetchPolicy: "network-only" },
+    mutate: { fetchPolicy: "network-only" },
   },
 });
