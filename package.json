@@ -2,7 +2,7 @@
   "name": "editor-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://melissa-uzum.github.io/editor-frontend",
+  "homepage": "https://melissa-uzum.github.io/editor-frontend/",
   "dependencies": {
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",
