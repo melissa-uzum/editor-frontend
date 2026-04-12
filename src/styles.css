@@ -275,3 +275,52 @@ footer {
 #root .doc-list li+li {
     margin-top: 0 !important;
 }
+
+.comments-panel {
+    display: grid;
+    gap: 8px;
+}
+
+.comment-form {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.comment-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    display: grid;
+    gap: 6px;
+}
+
+.comment-line {
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.comment-empty {
+    opacity: .7;
+}
+
+.share-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.share-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.share-form input {
+    flex: 1;
+}
+
+.share-status {
+    margin: 0;
+    opacity: 0.9;
+}

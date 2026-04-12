@@ -1,17 +1,17 @@
-import { render, screen } from "@testing-library/react";
+import React from "react";
 import { MemoryRouter } from "react-router-dom";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "./Home";
-import { api } from "../api";
+import { api } from "../api.gql";
 
-jest.mock("../api", () => ({
-  api: {
-    listDocs: jest.fn(),
-  },
-}));
+jest.mock("../api.gql");
 
-
-test("renders Dokument heading", async () => {
-  api.listDocs.mockResolvedValueOnce([]);
+test("Home: visar docs och tar bort doc vid delete", async () => {
+  api.listDocs.mockResolvedValue([
+    { id: "d1", title: "Doc 1" },
+    { id: "d2", title: "Doc 2" },
+  ]);
+  api.deleteDoc.mockResolvedValue(null);
 
   render(
     <MemoryRouter>
@@ -19,9 +19,12 @@ test("renders Dokument heading", async () => {
     </MemoryRouter>
   );
 
-  expect(
-    await screen.findByRole("heading", { name: /Dokument/i })
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Doc 1")).toBeInTheDocument();
+  expect(screen.getByText("Doc 2")).toBeInTheDocument();
 
-  expect(screen.getByText(/Inga dokument ännu/i)).toBeInTheDocument();
+  fireEvent.click(screen.getAllByRole("button", { name: /ta bort/i })[0]);
+
+  await waitFor(() => {
+    expect(screen.queryByText("Doc 1")).not.toBeInTheDocument();
+  });
 });
