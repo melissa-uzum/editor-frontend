@@ -4,20 +4,24 @@
   "private": true,
   "homepage": "https://melissa-uzum.github.io/editor-frontend/",
   "dependencies": {
+    "@apollo/client": "^4.1.7",
+    "@monaco-editor/react": "^4.7.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",
+    "graphql": "^16.13.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
+    "socket.io-client": "^4.8.3",
     "web-vitals": "^4.2.3"
   },
   "scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "test": "react-scripts test --watchAll=false",
-  "eject": "react-scripts eject"}
-  ,
+    "start": "react-scripts start",
+    "build": "react-scripts build && cp -r build/* . && touch .nojekyll",
+    "test": "react-scripts test --watchAll=false",
+    "eject": "react-scripts eject"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

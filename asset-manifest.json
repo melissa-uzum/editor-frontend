@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/editor-frontend/static/css/main.a97a4753.css",
+    "main.js": "/editor-frontend/static/js/main.8e2effa6.js",
+    "index.html": "/editor-frontend/index.html",
+    "main.a97a4753.css.map": "/editor-frontend/static/css/main.a97a4753.css.map",
+    "main.8e2effa6.js.map": "/editor-frontend/static/js/main.8e2effa6.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a97a4753.css",
+    "static/js/main.8e2effa6.js"
+  ]
+}
