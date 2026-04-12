@@ -25,6 +25,9 @@ async function getJSON(url, opts = {}) {
     },
   };
 
+  console.log("DEBUG: Requesting", url);
+  console.log("DEBUG: Headers:", init.headers);
+
   const res = await fetch(url, init);
 
   if (!res.ok) {
