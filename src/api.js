@@ -1,42 +1,28 @@
+import { auth } from "./auth";
+
 const BASE = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
 const join = (p) => `${BASE}${p.startsWith("/") ? p : `/${p}`}`;
-const toId = (x) =>
-  x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
+const toId = (x) => x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
 const unwrap = (x) => (x && typeof x === "object" && "data" in x ? x.data : x);
 
-function isDebug() {
-  try {
-    return localStorage.getItem("API_DEBUG") === "1";
-  } catch (_) {
-    return false;
-  }
-}
-function dbg(...args) {
-  if (isDebug()) {
-    console.log("[api]", ...args);
-  }
-}
-
 async function getJSON(url, opts = {}) {
+  const token = auth.getToken();
   const init = {
-    headers: { "Content-Type": "application/json" },
     ...opts,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      ...opts.headers,
+    },
   };
-
-  const method = (init.method || "GET").toUpperCase();
-  const previewBody =
-    typeof init.body === "string" && init.body.length <= 500
-      ? init.body
-      : init.body
-      ? "[large body]"
-      : undefined;
-  dbg(method, url, previewBody);
 
   const res = await fetch(url, init);
 
-  dbg("→", res.status, res.statusText, url);
-
   if (!res.ok) {
+    if (res.status === 401) {
+      auth.clear();
+      window.location.href = "/login";
+    }
     const msg = await res.text().catch(() => res.statusText);
     const err = new Error(msg || `HTTP ${res.status}`);
     err.status = res.status;

@@ -1,18 +1,10 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-
-function getToken() {
-  try {
-    return localStorage.getItem("jwt") || "";
-  } catch {
-    return "";
-  }
-}
+import { auth } from "../auth";
 
 export default function ProtectedRoute() {
   const loc = useLocation();
-  const token = getToken();
 
-  if (!token) {
+  if (!auth.isAuthed()) {
     return <Navigate to="/login" replace state={{ from: loc }} />;
   }
 

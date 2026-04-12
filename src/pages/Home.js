@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.gql";
+import { auth } from "../auth";
 
 export default function Home() {
   const [docs, setDocs] = useState([]);
@@ -8,6 +9,11 @@ export default function Home() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!auth.isAuthed()) {
+      setLoading(false);
+      return;
+    }
+
     api.listDocs()
       .then(setDocs)
       .catch(e => setError(e.message))
