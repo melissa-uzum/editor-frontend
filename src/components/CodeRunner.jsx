@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { api } from "../api.gql";
-import { toBase64Unicode } from "../utils/base64";
+import { auth } from "../auth";
 
-export default function CodeRunner({ code }) {
+export default function CodeRunner({ code, documentId }) {
   const [loading, setLoading] = useState(false);
   const [out, setOut] = useState("");
   const [err, setErr] = useState("");
@@ -12,9 +11,20 @@ export default function CodeRunner({ code }) {
     setOut("");
     setErr("");
     try {
-      const b64 = toBase64Unicode(code || "");
-      const result = await api.executeCode(b64);
-      setOut(String(result.stdout || result.stderr || "No output"));
+      const token = auth.getToken();
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/docs/${documentId}/execute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ code: code }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to execute");
+
+      setOut(result.output || "No output");
     } catch (e) {
       setErr(String(e.message));
     } finally {
@@ -23,20 +33,6 @@ export default function CodeRunner({ code }) {
   }
 
   return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={run} disabled={loading || !code?.trim()}>Kör</button>
-        {loading && <span>Kör…</span>}
-      </div>
-      {err && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{err}</pre>}
-      {out !== "" && (
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Output</div>
-          <pre style={{ background: "#0b1020", color: "#c7e1ff", padding: 12, borderRadius: 6, overflow: "auto" }}>
-            {out}
-          </pre>
-        </div>
-      )}
-    </div>
+
   );
 }
