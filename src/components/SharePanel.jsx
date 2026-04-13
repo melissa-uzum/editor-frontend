@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api.gql";
 
-export default function SharePanel({ docId }) {
+export default function SharePanel({ docId, onSuccess }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,9 +14,9 @@ export default function SharePanel({ docId }) {
 
     try {
       await api.shareDoc(String(docId), email.trim());
-
       setEmail("");
       setStatus("Delningsinbjudan skickad.");
+      if (onSuccess) onSuccess();
     } catch (err) {
       setStatus("Kunde inte dela dokumentet.");
     } finally {
