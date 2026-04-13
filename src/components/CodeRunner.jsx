@@ -10,7 +10,6 @@ export default function CodeRunner({ code }) {
     setLoading(true);
     setOut("");
     setErr("");
-
     try {
       const response = await fetch("https://execjs.emilfolino.se/code", {
         method: "POST",
@@ -19,21 +18,18 @@ export default function CodeRunner({ code }) {
       });
 
       const result = await response.json();
-      console.log("Svar från server:", result);
 
       if (result.stdout) {
         try {
-          setOut(fromBase64Unicode(result.stdout));
+          setOut(atob(result.stdout));
         } catch (e) {
           setOut(result.stdout);
         }
-      } else if (result.stderr) {
-        setErr(result.stderr);
       } else {
         setOut("No output");
       }
     } catch (e) {
-      setErr("Exekveringsfel: " + e.message);
+      setErr(e.message);
     } finally {
       setLoading(false);
     }
