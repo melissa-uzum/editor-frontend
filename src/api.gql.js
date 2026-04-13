@@ -88,8 +88,6 @@ export const api = {
     return data.createComment;
   },
   async shareDoc(id, email) {
-    console.log("Delar dokument:", id, "med", email);
-
     const { data } = await apollo.mutate({
       mutation: SHARE_DOC,
       variables: { id, email }
