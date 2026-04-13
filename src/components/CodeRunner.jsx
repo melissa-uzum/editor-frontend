@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { toBase64Unicode, fromBase64Unicode } from "../utils/base64";
+import { auth } from "../auth";
+import { fromBase64Unicode } from "../utils/base64";
 
-export default function CodeRunner({ code }) {
+export default function CodeRunner({ code, documentId }) {
   const [loading, setLoading] = useState(false);
   const [out, setOut] = useState("");
   const [err, setErr] = useState("");
@@ -11,19 +12,28 @@ export default function CodeRunner({ code }) {
     setOut("");
     setErr("");
     try {
-      const b64Code = toBase64Unicode(code);
-      const response = await fetch("https://execjs.emilfolino.se/code", {
+      const token = auth.getToken();
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/docs/${documentId}/execute`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: b64Code }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ code: code }),
       });
 
       const result = await response.json();
 
-      if (result.stdout) {
-        setOut(fromBase64Unicode(result.stdout));
-      } else if (result.stderr) {
-        setErr(fromBase64Unicode(result.stderr));
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to execute");
+      }
+
+      if (result.output) {
+        try {
+          setOut(fromBase64Unicode(result.output));
+        } catch (e) {
+          setOut(result.output);
+        }
       } else {
         setOut("No output");
       }
@@ -36,13 +46,18 @@ export default function CodeRunner({ code }) {
 
   return (
     <div style={{ display: "grid", gap: 8 }}>
-      <button onClick={run} disabled={loading || !code?.trim()}>Kör kod</button>
-      {loading && <span>Exekverar...</span>}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={run} disabled={loading || !code?.trim()}>Kör</button>
+        {loading && <span>Kör…</span>}
+      </div>
       {err && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{err}</pre>}
       {out && (
-        <pre style={{ background: "#0b1020", color: "#c7e1ff", padding: 12, borderRadius: 6 }}>
-          {out}
-        </pre>
+        <div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Output</div>
+          <pre style={{ background: "#0b1020", color: "#c7e1ff", padding: 12, borderRadius: 6, overflow: "auto" }}>
+            {out}
+          </pre>
+        </div>
       )}
     </div>
   );
