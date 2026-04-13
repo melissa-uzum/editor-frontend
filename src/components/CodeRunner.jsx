@@ -12,32 +12,25 @@ export default function CodeRunner({ code }) {
     setErr("");
 
     try {
-      console.log("CODE SENT TO EXECJS:", code);
-
       const response = await fetch("https://execjs.emilfolino.se/code", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code: toBase64Unicode(code || ""),
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: toBase64Unicode(code || "") }),
       });
 
       const result = await response.json();
       console.log("EXECJS RESULT:", result);
 
       if (!response.ok) {
-        throw new Error(result?.error || `HTTP ${response.status}`);
+        throw new Error(result.error || `HTTP ${response.status}`);
       }
 
-      if (result?.data) {
+      if (result.data) {
         setOut(fromBase64Unicode(result.data));
       } else {
         setOut("No output");
       }
     } catch (e) {
-      console.error("EXEC ERROR:", e);
       setErr(e.message || "Något gick fel");
     } finally {
       setLoading(false);
@@ -46,7 +39,7 @@ export default function CodeRunner({ code }) {
 
   return (
     <div style={{ display: "grid", gap: 8 }}>
-      <button onClick={run} disabled={loading}>
+      <button type="button" onClick={run} disabled={loading}>
         {loading ? "Exekverar..." : "Kör kod"}
       </button>
 
