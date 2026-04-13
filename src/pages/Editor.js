@@ -12,7 +12,6 @@ export default function Editor({ mode }) {
   const isCreate = mode === "create";
   const { id } = useParams();
   const nav = useNavigate();
-
   const [docId, setDocId] = useState(isCreate ? "" : String(id));
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
@@ -42,7 +41,6 @@ export default function Editor({ mode }) {
   useEffect(() => {
     connect();
     loadDoc();
-
     onDocumentUpdate((payload) => {
       if (!payload) return;
       applyingRemote.current = true;
@@ -51,7 +49,6 @@ export default function Editor({ mode }) {
       if (typeof payload.content === "string") setContent(payload.content);
       queueMicrotask(() => { applyingRemote.current = false; });
     });
-
     return () => { disconnect(); };
   }, [id, isCreate]);
 
@@ -102,7 +99,7 @@ export default function Editor({ mode }) {
       {type === "code" ? (
         <div style={{ display: "grid", gap: 12 }}>
           <CodeEditor value={content} onChange={onContentChange} language="javascript" />
-          <CodeRunner code={content} />
+          <CodeRunner code={content} documentId={docId || id} />
         </div>
       ) : (
         <label>Innehåll <textarea rows={12} value={content} onChange={(e) => onContentChange(e.target.value)} required /></label>

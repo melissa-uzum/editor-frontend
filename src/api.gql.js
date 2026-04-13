@@ -3,7 +3,7 @@ import { auth } from "./auth";
 import {
   ME, LOGIN, REGISTER,
   DOCS, DOC, CREATE_DOC, UPDATE_DOC, DELETE_DOC,
-  LIST_COMMENTS, ADD_COMMENT, SHARE_DOC, EXECUTE_CODE
+  LIST_COMMENTS, ADD_COMMENT, SHARE_DOC
 } from "./graphql/operations";
 
 const toId = (x) => x?.id ?? x?._id ?? x?.rowid ?? x?._rowid ?? x?._Id ?? x?._ID;
@@ -16,7 +16,6 @@ export const api = {
     });
     return data.register;
   },
-
   async login(p) {
     const { data } = await apollo.mutate({
       mutation: LOGIN,
@@ -24,12 +23,10 @@ export const api = {
     });
     return data.login;
   },
-
   async me() {
     const { data } = await apollo.query({ query: ME, fetchPolicy: "network-only" });
     return data.me;
   },
-
   async listDocs() {
     try {
       const { data } = await apollo.query({ query: DOCS, fetchPolicy: "network-only" });
@@ -42,7 +39,6 @@ export const api = {
       throw e;
     }
   },
-
   async getDoc(id) {
     const { data } = await apollo.query({
       query: DOC,
@@ -53,7 +49,6 @@ export const api = {
     const normId = String(toId(d) ?? id);
     return { ...d, id: normId };
   },
-
   async createDoc(payload) {
     const { data } = await apollo.mutate({
       mutation: CREATE_DOC,
@@ -63,7 +58,6 @@ export const api = {
     const normId = String(toId(d));
     return { ...d, id: normId };
   },
-
   async updateDoc(id, payload) {
     await apollo.mutate({
       mutation: UPDATE_DOC,
@@ -71,7 +65,6 @@ export const api = {
     });
     return null;
   },
-
   async deleteDoc(id) {
     await apollo.mutate({
       mutation: DELETE_DOC,
@@ -79,7 +72,6 @@ export const api = {
     });
     return null;
   },
-
   async listComments(documentId) {
     const { data } = await apollo.query({
       query: LIST_COMMENTS,
@@ -88,7 +80,6 @@ export const api = {
     });
     return data.comments || [];
   },
-
   async addComment(payload) {
     const { data } = await apollo.mutate({
       mutation: ADD_COMMENT,
@@ -96,20 +87,11 @@ export const api = {
     });
     return data.createComment;
   },
-
   async shareDoc(id, email) {
     await apollo.mutate({
       mutation: SHARE_DOC,
       variables: { id, email }
     });
     return true;
-  },
-
-  async executeCode(codeBase64) {
-    const { data } = await apollo.mutate({
-      mutation: EXECUTE_CODE,
-      variables: { codeBase64 }
-    });
-    return data.executeCode;
   }
 };
