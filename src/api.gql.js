@@ -102,7 +102,7 @@ export const api = {
       mutation: SHARE_DOC,
       variables: { id, email }
     });
-    return data.shareDocument;
+    return data?.shareDocument || data;
   },
 
   async executeCode(codeBase64) {

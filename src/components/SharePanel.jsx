@@ -7,23 +7,21 @@ export default function SharePanel({ docId }) {
   const [loading, setLoading] = useState(false);
 
   async function onShare() {
-  if (!docId || !email.trim()) return;
+    if (!docId || !email.trim()) return;
 
-  setStatus("");
-  setLoading(true);
+    setStatus("");
+    setLoading(true);
 
-  try {
-    await api.shareDoc(String(docId), email.trim());
-
-    setEmail("");
-    setStatus("Delningsinbjudan skickad.");
-  } catch (err) {
-    setStatus(String(err?.message || "Kunde inte dela dokumentet."));
-  } finally {
-    setLoading(false);
+    try {
+      await api.shareDoc(String(docId), email.trim());
+      setEmail("");
+      setStatus("Delningsinbjudan skickad.");
+    } catch (err) {
+      setStatus(String(err?.message || "Kunde inte dela dokumentet."));
+    } finally {
+      setLoading(false);
+    }
   }
-}
-
 
   function onKeyDown(e) {
     if (e.key === "Enter") {
