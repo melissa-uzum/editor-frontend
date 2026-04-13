@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Editor from "./pages/Editor";
@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import "./styles.css";
 import SocketTest from "./pages/SocketTest";
+
 console.log("SocketTest import:", SocketTest);
 console.log("APP LOADED", new Date().toISOString())
 console.log("ENV CHECK:", {
@@ -18,16 +19,9 @@ console.log("ENV CHECK:", {
   nodeEnv: process.env.NODE_ENV,
 });
 
-const basename =
-  process.env.NODE_ENV === "development"
-    ? "/"
-    : (process.env.REACT_APP_BASENAME ||
-        ((process.env.PUBLIC_URL && process.env.PUBLIC_URL.replace(/^https?:\/\/[^/]+/, "")) || "/"));
-
-
 export default function App() {
   return (
-    <BrowserRouter basename={basename}>
+    <HashRouter>
       <Header />
       <main>
         <Routes>
@@ -43,6 +37,6 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
-    </BrowserRouter>
+    </HashRouter>
   );
 }
