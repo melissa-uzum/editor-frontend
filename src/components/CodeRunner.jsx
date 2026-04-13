@@ -19,11 +19,13 @@ export default function CodeRunner({ code }) {
 
       const result = await response.json();
 
-      if (result.stdout) {
+      const b64Value = result.data || result.stdout;
+
+      if (b64Value) {
         try {
-          setOut(atob(result.stdout));
+          setOut(fromBase64Unicode(b64Value));
         } catch (e) {
-          setOut(result.stdout);
+          setOut("Kunde inte avkoda: " + b64Value);
         }
       } else {
         setOut("No output");
