@@ -1,37 +1,48 @@
 import { useState } from "react";
-import { toBase64Unicode, fromBase64Unicode } from "../utils/base64";
 
 export default function CodeRunner({ code }) {
   const [loading, setLoading] = useState(false);
-  const [out, setOut] = useState("");
+  const [out, setOut] = useState("No output");
   const [err, setErr] = useState("");
 
-  async function run() {
+  async function run(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
     setLoading(true);
-    setOut("");
     setErr("");
+    setOut("No output");
 
     try {
+      console.log("CODE:", code);
+
       const response = await fetch("https://execjs.emilfolino.se/code", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: toBase64Unicode(code || "") }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: btoa(code || ""),
+        }),
       });
 
       const result = await response.json();
-      console.log("EXECJS RESULT:", result);
+      console.log("RESULT:", result);
 
       if (!response.ok) {
-        throw new Error(result.error || `HTTP ${response.status}`);
+        throw new Error(result?.error || `HTTP ${response.status}`);
       }
 
-      if (result.data) {
-        setOut(fromBase64Unicode(result.data));
+      if (result && result.data) {
+        const decoded = atob(result.data);
+        console.log("DECODED:", decoded);
+        setOut(decoded || "No output");
       } else {
         setOut("No output");
       }
-    } catch (e) {
-      setErr(e.message || "Något gick fel");
+    } catch (error) {
+      console.error(error);
+      setErr(error.message || "Något gick fel");
     } finally {
       setLoading(false);
     }
@@ -43,11 +54,13 @@ export default function CodeRunner({ code }) {
         {loading ? "Exekverar..." : "Kör kod"}
       </button>
 
-      {err && <pre style={{ color: "crimson" }}>{err}</pre>}
-
-      <pre style={{ background: "#0b1020", color: "#fff", padding: 10 }}>
-        {out || "No output"}
-      </pre>
+      {err ? (
+        <pre style={{ color: "crimson" }}>{err}</pre>
+      ) : (
+        <pre style={{ background: "#0b1020", color: "#fff", padding: 10 }}>
+          {out}
+        </pre>
+      )}
     </div>
   );
 }
