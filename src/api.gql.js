@@ -87,11 +87,12 @@ export const api = {
     });
     return data.createComment;
   },
+
   async shareDoc(id, email) {
-    const { data } = await apollo.mutate({
-      mutation: SHARE_DOC,
-      variables: { id, email }
-    });
-    return data.shareDocument;
-  }
+  const { data } = await apollo.mutate({
+    mutation: SHARE_DOC,
+    variables: { id, email }
+  });
+  return data.shareDocument;
+}
 };
