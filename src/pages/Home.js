@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.gql";
 import { auth } from "../auth";
-import { connect, disconnect, onDocumentUpdate } from "../socket";
 
 export default function Home() {
   const [docs, setDocs] = useState([]);
@@ -10,21 +9,20 @@ export default function Home() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  function loadDocs() {
-    api.listDocs()
-      .then((data) => {
-        setDocs(data);
+  async function loadDocs() {
+    try {
+      const data = await api.listDocs();
+      setDocs(data);
+      setLoading(false);
+    } catch (e) {
+      if (e.status === 401) {
+        auth.clear();
+        navigate("/login");
+      } else {
+        setError(String(e.message || e));
         setLoading(false);
-      })
-      .catch((e) => {
-        if (e.status === 401) {
-          auth.clear();
-          navigate("/login");
-        } else {
-          setError(String(e.message || e));
-          setLoading(false);
-        }
-      });
+      }
+    }
   }
 
   useEffect(() => {
@@ -33,17 +31,11 @@ export default function Home() {
       return;
     }
 
-    connect();
     loadDocs();
 
-    // Listen for updates to refresh the list automatically
-    onDocumentUpdate(() => {
-      loadDocs();
-    });
+    const interval = setInterval(loadDocs, 3000);
 
-    return () => {
-      disconnect();
-    };
+    return () => clearInterval(interval);
   }, [navigate]);
 
   async function handleDelete(id) {
@@ -62,15 +54,27 @@ export default function Home() {
     <>
       <h1>Dokument</h1>
       {docs.length === 0 && <p>Inga dokument ännu.</p>}
+
       <ul className="doc-list">
         {docs.map((d) => (
           <li key={d.id} className="doc-item">
             <Link to={`/doc/${d.id}`}>{d.title || "(utan titel)"}</Link>
-            <button className="btn" onClick={() => handleDelete(d.id)}>Ta bort</button>
+            <button
+              className="btn"
+              onClick={() => handleDelete(d.id)}
+              aria-label={`Ta bort ${d.title || "dokument"}`}
+            >
+              Ta bort
+            </button>
           </li>
         ))}
       </ul>
-      <p><Link className="btn btn-primary" to="/new">+ Skapa nytt</Link></p>
+
+      <p>
+        <Link className="btn btn-primary" to="/new">
+          + Skapa nytt
+        </Link>
+      </p>
     </>
   );
 }
