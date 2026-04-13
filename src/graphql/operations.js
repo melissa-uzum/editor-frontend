@@ -1,15 +1,5 @@
 import { gql } from "@apollo/client";
 
-export const EXECUTE_CODE = gql`
-  mutation ExecuteCode($codeBase64: String!) {
-    executeCode(codeBase64: $codeBase64) {
-      stdout
-      stderr
-    }
-  }
-`;
-
-
 export const ME = gql`
   query Me { me { id email } }
 `;
