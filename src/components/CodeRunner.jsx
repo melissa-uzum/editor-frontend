@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { auth } from "../auth";
-import { fromBase64Unicode } from "../utils/base64";
+import { toBase64Unicode, fromBase64Unicode } from "../utils/base64";
 
-export default function CodeRunner({ code, documentId }) {
+export default function CodeRunner({ code }) {
   const [loading, setLoading] = useState(false);
   const [out, setOut] = useState("");
   const [err, setErr] = useState("");
@@ -12,27 +11,22 @@ export default function CodeRunner({ code, documentId }) {
     setOut("");
     setErr("");
     try {
-      const token = auth.getToken();
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/docs/${documentId}/execute`, {
+      const b64Code = toBase64Unicode(code);
+      const response = await fetch("https://execjs.emilfolino.se/code", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ code: code }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: b64Code }),
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to execute");
 
-      let outputText = result.output || "No output";
-      try {
-        outputText = fromBase64Unicode(outputText);
-      } catch (e) {
-        console.error("Avkodningsfel:", e);
+      if (result.stdout) {
+        setOut(fromBase64Unicode(result.stdout));
+      } else if (result.stderr) {
+        setErr(fromBase64Unicode(result.stderr));
+      } else {
+        setOut("No output");
       }
-
-      setOut(outputText);
     } catch (e) {
       setErr(String(e.message));
     } finally {
@@ -42,18 +36,13 @@ export default function CodeRunner({ code, documentId }) {
 
   return (
     <div style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={run} disabled={loading || !code?.trim()}>Kör</button>
-        {loading && <span>Kör…</span>}
-      </div>
+      <button onClick={run} disabled={loading || !code?.trim()}>Kör kod</button>
+      {loading && <span>Exekverar...</span>}
       {err && <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>{err}</pre>}
-      {out !== "" && (
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Output</div>
-          <pre style={{ background: "#0b1020", color: "#c7e1ff", padding: 12, borderRadius: 6, overflow: "auto" }}>
-            {out}
-          </pre>
-        </div>
+      {out && (
+        <pre style={{ background: "#0b1020", color: "#c7e1ff", padding: 12, borderRadius: 6 }}>
+          {out}
+        </pre>
       )}
     </div>
   );
