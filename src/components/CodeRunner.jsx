@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { api } from "../api.gql";
 import { toBase64Unicode } from "../utils/base64";
 
 export default function CodeRunner({ code }) {
@@ -12,14 +13,7 @@ export default function CodeRunner({ code }) {
     setErr("");
     try {
       const b64 = toBase64Unicode(code || "");
-      const response = await fetch("https://execjs.emilfolino.se/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: b64 }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to execute");
+      const result = await api.executeCode(b64);
       setOut(String(result.stdout || result.stderr || "No output"));
     } catch (e) {
       setErr(String(e.message));
