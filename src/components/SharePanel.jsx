@@ -14,18 +14,17 @@ export default function SharePanel({ docId, onSuccess }) {
 
     try {
       const result = await api.shareDoc(String(docId), email.trim());
-      console.log("Share result:", result);
 
       if (result === null) {
-        setStatus("Servern svarade, men delning nekades (kontrollera behörighet).");
+        setStatus("Det gick inte att dela dokumentet. Kontrollera att mottagaren finns registrerad.");
       } else {
-        setStatus("Delningsinbjudan skickad.");
+        setStatus("Delningsinbjudan skickades framgångsrikt!");
         setEmail("");
         if (onSuccess) onSuccess();
       }
     } catch (err) {
       console.error("Share error:", err);
-      setStatus("Kunde inte dela dokumentet.");
+      setStatus("Ett tekniskt fel uppstod. Försök igen senare.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +43,7 @@ export default function SharePanel({ docId, onSuccess }) {
       <div className="share-form">
         <input
           type="email"
-          placeholder="E-post att dela med…"
+          placeholder="E-postadress..."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={onKeyDown}
@@ -54,10 +53,14 @@ export default function SharePanel({ docId, onSuccess }) {
           onClick={onShare}
           disabled={loading || !email.trim()}
         >
-          {loading ? "Delar…" : "Dela"}
+          {loading ? "Skickar…" : "Dela"}
         </button>
       </div>
-      {status && <p className="share-status">{status}</p>}
+      {status && (
+        <p className={`share-status ${status.includes("fel") ? "error" : "success"}`}>
+          {status}
+        </p>
+      )}
     </div>
   );
 }
