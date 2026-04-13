@@ -23,7 +23,14 @@ export default function CodeRunner({ code, documentId }) {
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to execute");
-      setOut(result.output || "No output");
+
+      let outputText = result.output || "No output";
+      try {
+        outputText = atob(outputText);
+      } catch (e) {
+      }
+
+      setOut(outputText);
     } catch (e) {
       setErr(String(e.message));
     } finally {
