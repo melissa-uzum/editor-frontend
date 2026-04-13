@@ -98,11 +98,11 @@ export const api = {
   },
 
   async shareDoc(id, email) {
-    const { data } = await apollo.mutate({
+    await apollo.mutate({
       mutation: SHARE_DOC,
       variables: { id, email }
     });
-    return data?.shareDocument || data;
+    return true;
   },
 
   async executeCode(codeBase64) {

@@ -14,10 +14,11 @@ export default function SharePanel({ docId }) {
 
     try {
       await api.shareDoc(String(docId), email.trim());
+
       setEmail("");
       setStatus("Delningsinbjudan skickad.");
     } catch (err) {
-      setStatus(String(err?.message || "Kunde inte dela dokumentet."));
+      setStatus("Kunde inte dela dokumentet.");
     } finally {
       setLoading(false);
     }
@@ -33,7 +34,6 @@ export default function SharePanel({ docId }) {
   return (
     <div className="share-panel">
       <h3>Dela dokument</h3>
-
       <div className="share-form">
         <input
           type="email"
@@ -50,7 +50,6 @@ export default function SharePanel({ docId }) {
           {loading ? "Delar…" : "Dela"}
         </button>
       </div>
-
       {status && <p className="share-status">{status}</p>}
     </div>
   );
