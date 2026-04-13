@@ -13,16 +13,12 @@ export default function SharePanel({ docId }) {
   setLoading(true);
 
   try {
-    const res = await api.shareDoc(String(docId), email.trim());
-
-    if (!res) {
-      throw new Error("Delning misslyckades (backend returnerade null).");
-    }
+    await api.shareDoc(String(docId), email.trim());
 
     setEmail("");
     setStatus("Delningsinbjudan skickad.");
   } catch (err) {
-    setStatus(String(err?.message || err || "Kunde inte dela dokumentet."));
+    setStatus(String(err?.message || "Kunde inte dela dokumentet."));
   } finally {
     setLoading(false);
   }
