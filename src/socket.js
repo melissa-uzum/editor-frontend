@@ -15,11 +15,11 @@ function getToken() {
 function ensure() {
   if (socket && socket.connected) return socket;
 
-  const base = (process.env.REACT_APP_SOCKET_URL || "").trim();
+  const base = (process.env.REACT_APP_SOCKET_URL || "https://rg-ssr-editor-nilb24-dnbkc9c2edf7gkfs.swedencentral-01.azurewebsites.net").trim();
 
-  socket = io(base || undefined, {
+  socket = io(base, {
     path: "/socket.io",
-    transports: ["websocket", "polling"],
+    transports: ["websocket"],
     auth: { token: getToken() },
     withCredentials: true,
   });
@@ -39,8 +39,6 @@ export function disconnect() {
     currentCommentsDocId = null;
   }
 }
-
-/* ========= Documents ========= */
 
 export function joinDoc(documentId, callback) {
   const s = ensure();
@@ -81,8 +79,6 @@ export function sendDocumentUpdate(payload, callback) {
     callback
   );
 }
-
-/* ========= Comments ========= */
 
 export function joinComments(documentId, callback) {
   const s = ensure();
