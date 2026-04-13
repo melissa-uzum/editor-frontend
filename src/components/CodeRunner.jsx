@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { auth } from "../auth";
+import { fromBase64Unicode } from "../utils/base64";
 
 export default function CodeRunner({ code, documentId }) {
   const [loading, setLoading] = useState(false);
@@ -26,8 +27,9 @@ export default function CodeRunner({ code, documentId }) {
 
       let outputText = result.output || "No output";
       try {
-        outputText = atob(outputText);
+        outputText = fromBase64Unicode(outputText);
       } catch (e) {
+        console.error("Avkodningsfel:", e);
       }
 
       setOut(outputText);
