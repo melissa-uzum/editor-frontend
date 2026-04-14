@@ -25,9 +25,6 @@ async function getJSON(url, opts = {}) {
     },
   };
 
-  console.log("DEBUG: Requesting", url);
-  console.log("DEBUG: Headers:", init.headers);
-
   const res = await fetch(url, init);
 
   if (!res.ok) {
@@ -136,4 +133,10 @@ export const api = {
   async deleteDoc() {
     throw new Error("Delete not supported by backend");
   },
+  async shareDoc(docId, email) {
+    return await getJSON(join(`/api/docs/${encodeURIComponent(docId)}/share`), {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
 };

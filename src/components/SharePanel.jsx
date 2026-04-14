@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api } from "../api.gql";
+import { api } from "../api";
 
 export default function SharePanel({ docId, onSuccess }) {
   const [email, setEmail] = useState("");
