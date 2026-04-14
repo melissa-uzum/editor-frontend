@@ -13,18 +13,16 @@ export default function SharePanel({ docId, onSuccess }) {
     setLoading(true);
 
     try {
-      const result = await api.shareDoc(String(docId), email.trim());
+      await api.shareDoc(String(docId), email.trim());
 
-      if (result === null) {
-        setStatus("Det gick inte att dela dokumentet. Kontrollera att mottagaren finns registrerad.");
-      } else {
-        setStatus("Delningsinbjudan skickades framgångsrikt!");
-        setEmail("");
-        if (onSuccess) onSuccess();
-      }
+      setStatus("Delningsinbjudan skickades framgångsrikt!");
+      setEmail("");
+      if (onSuccess) onSuccess();
+
     } catch (err) {
       console.error("Share error:", err);
-      setStatus("Ett tekniskt fel uppstod. Försök igen senare.");
+
+      setStatus("Det gick inte att dela dokumentet. Kontrollera att mottagaren finns registrerad.");
     } finally {
       setLoading(false);
     }
