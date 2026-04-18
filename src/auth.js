@@ -1,4 +1,4 @@
-const TOKEN_KEY = "jwt";
+const TOKEN_KEY = "token";
 
 function notify() {
   window.dispatchEvent(new Event("auth-changed"));

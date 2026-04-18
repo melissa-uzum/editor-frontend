@@ -1,44 +1,100 @@
 import React from "react";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import CommentsPanel from "./CommentsPanel";
-import { api } from "../api.gql";
-import { joinComments, onCommentAdded } from "../socket";
 
-jest.mock("../api.gql", () => ({
-  api: { listComments: jest.fn() },
+const mockAddComment = jest.fn();
+const mockDeleteComment = jest.fn();
+const mockRefetch = jest.fn();
+
+jest.mock("../graphql/operations", () => ({
+  ADD_COMMENT: { kind: "ADD_COMMENT" },
+  DELETE_COMMENT: { kind: "DELETE_COMMENT" },
+  LIST_COMMENTS: { kind: "LIST_COMMENTS" },
 }));
+
+jest.mock("@apollo/client/react", () => ({
+  useQuery: () => ({
+    data: {
+      comments: [
+        {
+          id: "c1",
+          documentId: "doc1",
+          lineNumber: 2,
+          content: "Testkommentar",
+          resolved: false,
+          author: { id: "u1", username: "mel" },
+        },
+      ],
+    },
+    loading: false,
+    error: null,
+    refetch: mockRefetch,
+  }),
+  useMutation: (operation) => {
+    if (operation?.kind === "ADD_COMMENT") {
+      return [mockAddComment, { loading: false }];
+    }
+
+    if (operation?.kind === "DELETE_COMMENT") {
+      return [mockDeleteComment, { loading: false }];
+    }
+
+    return [jest.fn(), { loading: false }];
+  },
+}));
+
 jest.mock("../socket", () => ({
   joinComments: jest.fn(),
   leaveComments: jest.fn(),
   onCommentAdded: jest.fn(),
-  onCommentUpdated: jest.fn(),
   onCommentDeleted: jest.fn(),
-  sendCommentAdd: jest.fn(),
-  sendCommentDelete: jest.fn(),
 }));
 
-test("CommentsPanel: laddar kommentarer och hanterar live comment via socket", async () => {
-  api.listComments.mockResolvedValue([
-    { id: "c1", documentId: "d1", lineNumber: 1, content: "Hej" },
-  ]);
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-  let addedHandler = null;
-  onCommentAdded.mockImplementation((fn) => {
-    addedHandler = fn;
-  });
-
-  render(<CommentsPanel docId="d1" content={"rad1\nrad2"} />);
-
-  expect(joinComments).toHaveBeenCalledWith("d1");
-  expect(await screen.findByText("Hej")).toBeInTheDocument();
-
-  act(() => {
-    addedHandler({
-      comment: { id: "c2", documentId: "d1", lineNumber: 2, content: "Ny!" },
-    });
-  });
+test("visar befintliga kommentarer för vald rad", async () => {
+  render(
+    <CommentsPanel
+      docId="doc1"
+      selectedLine={2}
+      onSelectLine={() => {}}
+    />
+  );
 
   await waitFor(() => {
-    expect(screen.getByText("Ny!")).toBeInTheDocument();
+    expect(screen.getByText("Testkommentar")).toBeInTheDocument();
+  });
+});
+
+test("lägger till kommentar för vald rad", async () => {
+  mockAddComment.mockResolvedValue({
+    data: {
+      createComment: {
+        id: "c2",
+        documentId: "doc1",
+        lineNumber: 2,
+        content: "Ny kommentar",
+        resolved: false,
+        author: { id: "u1", username: "mel" },
+      },
+    },
+  });
+
+  render(
+    <CommentsPanel
+      docId="doc1"
+      selectedLine={2}
+      onSelectLine={() => {}}
+    />
+  );
+
+  const input = screen.getByPlaceholderText(/skriv kommentar för rad 2/i);
+  fireEvent.change(input, { target: { value: "Ny kommentar" } });
+  fireEvent.click(screen.getByRole("button", { name: /lägg till kommentar/i }));
+
+  await waitFor(() => {
+    expect(mockAddComment).toHaveBeenCalled();
   });
 });
