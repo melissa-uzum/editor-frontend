@@ -1,10 +1,5 @@
 import { gql } from "@apollo/client";
 
-<<<<<<< Updated upstream
-export const EXECUTE_CODE = gql`
-  mutation ExecuteCode($codeBase64: String!) {
-    executeCode(codeBase64: $codeBase64)
-=======
 export const GET_DOCUMENTS = gql`
   query GetDocuments {
     documents {
@@ -13,19 +8,26 @@ export const GET_DOCUMENTS = gql`
       content
       type
     }
->>>>>>> Stashed changes
   }
 `;
 
 export const ME = gql`
-  query Me { me { id email } }
+  query Me {
+    me {
+      id
+      email
+    }
+  }
 `;
 
 export const LOGIN = gql`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
       token
-      user { id email }
+      user {
+        id
+        email
+      }
     }
   }
 `;
@@ -43,32 +45,56 @@ export const REGISTER = gql`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
       token
-      user { id email }
+      user {
+        id
+        email
+      }
     }
   }
 `;
 
 export const DOCS = gql`
   query Docs {
-    documents { id title content type updatedAt createdAt }
+    documents {
+      id
+      title
+      content
+      type
+      updatedAt
+      createdAt
+    }
   }
 `;
 
 export const DOC = gql`
-  query Doc($id:ID!) {
-    document(id:$id) { id title content type updatedAt createdAt }
+  query Doc($id: ID!) {
+    document(id: $id) {
+      id
+      title
+      content
+      type
+      updatedAt
+      createdAt
+    }
   }
 `;
 
 export const CREATE_DOC = gql`
   mutation CreateDoc($input: DocumentInput!) {
-    createDocument(input:$input) { id title content type updatedAt createdAt }
+    createDocument(input: $input) {
+      id
+      title
+      content
+      type
+      updatedAt
+      createdAt
+    }
   }
 `;
 
 export const UPDATE_DOC = gql`
-  mutation UpdateDoc($id:ID!, $input: DocumentUpdateInput!) {
-    updateDocument(id:$id, input:$input) {
+  mutation UpdateDoc($id: ID!, $input: DocumentUpdateInput!) {
+    updateDocument(id: $id, input: $input) {
       id
       title
       content
@@ -80,14 +106,16 @@ export const UPDATE_DOC = gql`
 `;
 
 export const DELETE_DOC = gql`
-  mutation DeleteDoc($id:ID!) {
-    deleteDocument(id:$id)
+  mutation DeleteDoc($id: ID!) {
+    deleteDocument(id: $id)
   }
 `;
 
 export const SHARE_DOC = gql`
-  mutation ShareDoc($id:ID!, $email:String!) {
-    shareDocument(id:$id, email:$email) { id }
+  mutation ShareDoc($id: ID!, $email: String!) {
+    shareDocument(id: $id, email: $email) {
+      id
+    }
   }
 `;
 
@@ -101,7 +129,10 @@ export const LIST_COMMENTS = gql`
       resolved
       createdAt
       updatedAt
-      author { id username }
+      author {
+        id
+        username
+      }
     }
   }
 `;
@@ -122,7 +153,10 @@ export const ADD_COMMENT = gql`
       resolved
       createdAt
       updatedAt
-      author { id username }
+      author {
+        id
+        username
+      }
     }
   }
 `;

@@ -1,26 +1,5 @@
-<<<<<<< Updated upstream
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { api } from "../api.gql";
-
-export default function Home() {
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    api.listDocs()
-      .then(setDocs)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function handleDelete(id) {
-    try {
-      await api.deleteDoc(id);
-      setDocs(prev => prev.filter(x => x.id !== id));
-=======
-import { useMutation, useQuery } from "@apollo/client/react";import { Link, useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { Link, useNavigate } from "react-router-dom";
 import { DELETE_DOC, GET_DOCUMENTS } from "../graphql/operations";
 import { auth } from "../auth";
 
@@ -54,14 +33,15 @@ export default function Home() {
         variables: { id: String(id) },
       });
       await refetch();
->>>>>>> Stashed changes
     } catch (e) {
       console.error(e);
     }
   }
 
   if (loading) return <p>Laddar…</p>;
-  if (error) return <p style={{ color: "crimson" }}>Fel: {error.message}</p>;
+  if (error) {
+    return <p style={{ color: "crimson" }}>Fel: {error.message}</p>;
+  }
 
   const docs = data?.documents || [];
 
@@ -71,7 +51,7 @@ export default function Home() {
       {docs.length === 0 && <p>Inga dokument ännu.</p>}
 
       <ul className="doc-list">
-        {docs.map(d => (
+        {docs.map((d) => (
           <li key={d.id} className="doc-item">
             <Link to={`/doc/${d.id}`}>{d.title || "(utan titel)"}</Link>
             <button
@@ -87,7 +67,9 @@ export default function Home() {
       </ul>
 
       <p>
-        <Link className="btn btn-primary" to="/new">+ Skapa nytt</Link>
+        <Link className="btn btn-primary" to="/new">
+          + Skapa nytt
+        </Link>
       </p>
     </>
   );

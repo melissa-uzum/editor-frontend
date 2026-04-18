@@ -18,9 +18,6 @@ function getBaseUrl() {
     return envUrl;
   }
 
-<<<<<<< Updated upstream
-  const base = (process.env.REACT_APP_SOCKET_URL || "").trim();
-=======
   if (window.location.hostname === "localhost") {
     return "http://localhost:3000";
   }
@@ -34,9 +31,8 @@ function ensure() {
   }
 
   const base = getBaseUrl();
->>>>>>> Stashed changes
 
-  socket = io(base || undefined, {
+  socket = io(base, {
     path: "/socket.io",
     transports: ["websocket", "polling"],
     auth: { token: getToken() },
@@ -59,7 +55,6 @@ export function disconnect() {
   }
 }
 
-/* ========= Documents ========= */
 
 export function joinDoc(documentId, callback) {
   const s = ensure();
@@ -114,7 +109,6 @@ export function sendDocumentUpdate(payload, callback) {
   );
 }
 
-/* ========= Comments ========= */
 
 export function joinComments(documentId, callback) {
   const s = ensure();

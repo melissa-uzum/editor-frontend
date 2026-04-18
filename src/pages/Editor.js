@@ -25,11 +25,7 @@ export default function Editor({ mode }) {
   const { id } = useParams();
   const nav = useNavigate();
 
-<<<<<<< Updated upstream
-  const [docId, setDocId] = useState(isCreate ? "" : String(id));
-=======
   const [docId, setDocId] = useState(isCreate ? "" : String(id || ""));
->>>>>>> Stashed changes
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
   const [content, setContent] = useState("");
@@ -39,78 +35,6 @@ export default function Editor({ mode }) {
   const [selectedLine, setSelectedLine] = useState(null);
   const applyingRemote = useRef(false);
 
-<<<<<<< Updated upstream
-  useEffect(() => {
-  connect();
-
-  return () => {
-    if (process.env.NODE_ENV !== "development") {
-      disconnect();
-    }
-  };
-}, []);
-
-
-  useEffect(() => {
-    let alive = true;
-
-    async function load() {
-      if (isCreate) {
-        setDocId("");
-        setTitle("");
-        setType("text");
-        setContent("");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const d = await api.getDoc(id);
-        if (!alive) return;
-
-        const resolvedId = String(d.id || id);
-        setDocId(resolvedId);
-        setTitle(d.title || "");
-        setType(d.type || "text");
-        setContent(d.content || "");
-
-        joinDoc(resolvedId);
-
-        onDocumentUpdate((payload) => {
-          if (!payload) return;
-
-          const payloadDocId = String(payload.documentId ?? payload.docId ?? payload.id ?? "");
-          if (payloadDocId && payloadDocId !== resolvedId) return;
-
-          applyingRemote.current = true;
-
-          if (typeof payload.title === "string") setTitle(payload.title);
-          if (typeof payload.type === "string") setType(payload.type);
-          if (typeof payload.content === "string") setContent(payload.content);
-
-          queueMicrotask(() => {
-            applyingRemote.current = false;
-          });
-        });
-      } catch (e) {
-        setError(String(e?.message || e));
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      alive = false;
-    };
-  }, [id, isCreate]);
-
-  const emitChange = useMemo(
-    () =>
-      debounce((next) => {
-        if (!next.documentId) return;
-
-=======
   const {
     data,
     loading,
@@ -223,39 +147,17 @@ export default function Editor({ mode }) {
   const emitChange = useMemo(
     () =>
       debounce((next) => {
->>>>>>> Stashed changes
         sendDocumentUpdate({
           documentId: next.documentId,
           title: next.title,
           content: next.content,
-<<<<<<< Updated upstream
-=======
           type: next.type,
->>>>>>> Stashed changes
         });
       }, 180),
     []
   );
 
   function onTitle(e) {
-<<<<<<< Updated upstream
-    const v = e.target.value;
-    setTitle(v);
-    if (!applyingRemote.current && !isCreate) {
-      emitChange({ documentId: docId || id, title: v, content });
-    }
-  }
-
-  function onType(e) {
-    const v = e.target.value;
-    setType(v);
-  }
-
-  function onContentChange(v) {
-    setContent(v);
-    if (!applyingRemote.current && !isCreate) {
-      emitChange({ documentId: docId || id, title, content: v });
-=======
     const value = e.target.value;
     setTitle(value);
 
@@ -293,7 +195,6 @@ export default function Editor({ mode }) {
         content: value,
         type,
       });
->>>>>>> Stashed changes
     }
   }
 
@@ -324,16 +225,13 @@ export default function Editor({ mode }) {
 
         nav(`/doc/${created.id}`);
       } else {
-<<<<<<< Updated upstream
-        await api.updateDoc(docId || id, { title, content, type });
-        nav(`/doc/${docId || id}`);
-=======
         const result = await updateDocument({
           variables: {
             id: String(docId || id),
             input: {
               title,
               content,
+              type: currentType,
             },
           },
         });
@@ -341,7 +239,6 @@ export default function Editor({ mode }) {
         if (!result?.data?.updateDocument) {
           throw new Error("Dokumentet kunde inte uppdateras.");
         }
->>>>>>> Stashed changes
       }
     } catch (e2) {
       const msg = String(e2?.message || e2);
@@ -379,11 +276,7 @@ export default function Editor({ mode }) {
 
       <label>
         Typ
-<<<<<<< Updated upstream
-        <select value={type} onChange={onType}>
-=======
         <select value={type} onChange={onTypeChange}>
->>>>>>> Stashed changes
           <option value="text">Text</option>
           <option value="code">Code (JavaScript)</option>
         </select>
@@ -391,34 +284,6 @@ export default function Editor({ mode }) {
 
       {type === "code" ? (
         <div style={{ display: "grid", gap: 12 }}>
-<<<<<<< Updated upstream
-          <CodeEditor value={content} onChange={onContentChange} language="javascript" />
-          <CodeRunner code={content} />
-        </div>
-      ) : (
-        <label style={{ display: "block" }}>
-          Innehåll
-          <textarea rows={12} value={content} onChange={(e) => onContentChange(e.target.value)} required />
-        </label>
-      )}
-
-      {!isCreate && (
-        <div style={{ display: "grid", gap: 12 }}>
-          <SharePanel docId={docId || id} />
-          <div>
-            <h3>Kommentarer</h3>
-            <CommentsPanel docId={docId || id} content={content} />
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 12 }}>
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Sparar…" : isCreate ? "Skapa" : "Spara"}
-        </button>
-        <button type="button" className="btn" onClick={() => nav("/")}>
-          Avbryt
-=======
           <CodeEditor
             value={content}
             onChange={onContentChange}
@@ -486,8 +351,7 @@ export default function Editor({ mode }) {
 
       <div style={{ display: "flex", gap: 12 }}>
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Sparar…" : "Spara"}
->>>>>>> Stashed changes
+          {saving ? "Sparar…" : isCreate ? "Skapa" : "Spara"}
         </button>
       </div>
     </form>

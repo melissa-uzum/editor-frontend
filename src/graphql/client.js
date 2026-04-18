@@ -13,20 +13,12 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext((_, { headers }) => {
-<<<<<<< Updated upstream
-  const t = auth.getToken();
-=======
   const token = auth.getToken();
->>>>>>> Stashed changes
 
   return {
     headers: {
       ...headers,
-<<<<<<< Updated upstream
-      ...(t ? { Authorization: `Bearer ${t}` } : {}),
-=======
-      Authorization: token ? `Bearer ${token}` : "",
->>>>>>> Stashed changes
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   };
 });
@@ -36,10 +28,10 @@ export const apollo = new ApolloClient({
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: 'network-only',
+      fetchPolicy: "network-only",
     },
     query: {
-      fetchPolicy: 'network-only',
+      fetchPolicy: "network-only",
     },
   },
 });

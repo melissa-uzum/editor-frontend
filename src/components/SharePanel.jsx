@@ -1,12 +1,8 @@
 import { useState } from "react";
-<<<<<<< Updated upstream
-import { api } from "../api.gql";
-=======
-import { SHARE_DOC } from "../graphql/operations";
 import { useMutation } from "@apollo/client/react";
->>>>>>> Stashed changes
+import { SHARE_DOC } from "../graphql/operations";
 
-export default function SharePanel({ docId }) {
+export default function SharePanel({ docId, onSuccess }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,43 +10,29 @@ export default function SharePanel({ docId }) {
   const [shareDoc] = useMutation(SHARE_DOC);
 
   async function onShare() {
-  if (!docId || !email.trim()) return;
+    if (!docId || !email.trim()) return;
 
-  setStatus("");
-  setLoading(true);
+    setStatus("");
+    setLoading(true);
 
-<<<<<<< Updated upstream
-  try {
-    const res = await api.shareDoc(String(docId), email.trim());
-
-    if (!res) {
-      throw new Error("Delning misslyckades (backend returnerade null).");
-=======
     try {
       await shareDoc({
-        variables: { id: docId, email: email.trim() }
+        variables: { id: docId, email: email.trim() },
       });
 
       setStatus("Delningsinbjudan skickades framgångsrikt!");
       setEmail("");
-      if (onSuccess) onSuccess();
+
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       console.error("Share error:", err);
       setStatus(`Fel: ${err.message || "Ett okänt fel inträffade"}`);
     } finally {
       setLoading(false);
->>>>>>> Stashed changes
     }
-
-    setEmail("");
-    setStatus("Delningsinbjudan skickad.");
-  } catch (err) {
-    setStatus(String(err?.message || err || "Kunde inte dela dokumentet."));
-  } finally {
-    setLoading(false);
   }
-}
-
 
   function onKeyDown(e) {
     if (e.key === "Enter") {
@@ -79,16 +61,16 @@ export default function SharePanel({ docId }) {
           {loading ? "Delar…" : "Dela"}
         </button>
       </div>
-<<<<<<< Updated upstream
 
-      {status && <p className="share-status">{status}</p>}
-=======
       {status && (
-        <p className={`share-status ${status.includes("Fel") ? "error" : "success"}`}>
+        <p
+          className={`share-status ${
+            status.includes("Fel") ? "error" : "success"
+          }`}
+        >
           {status}
         </p>
       )}
->>>>>>> Stashed changes
     </div>
   );
 }

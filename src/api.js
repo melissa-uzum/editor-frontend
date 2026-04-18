@@ -11,15 +11,29 @@ function isDebug() {
     return false;
   }
 }
+
 function dbg(...args) {
   if (isDebug()) {
     console.log("[api]", ...args);
   }
 }
 
+function getAuthHeaders() {
+  try {
+    const token = localStorage.getItem("token") || localStorage.getItem("jwt");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 async function getJSON(url, opts = {}) {
   const init = {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+      ...(opts.headers || {}),
+    },
     ...opts,
   };
 
@@ -30,15 +44,12 @@ async function getJSON(url, opts = {}) {
       : init.body
       ? "[large body]"
       : undefined;
+
   dbg(method, url, previewBody);
 
   const res = await fetch(url, init);
-<<<<<<< Updated upstream
-
   dbg("→", res.status, res.statusText, url);
 
-=======
->>>>>>> Stashed changes
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
     const err = new Error(msg || `HTTP ${res.status}`);
@@ -46,6 +57,7 @@ async function getJSON(url, opts = {}) {
     err.url = url;
     throw err;
   }
+
   return res.status === 204 ? null : unwrap(await res.json());
 }
 
@@ -55,12 +67,7 @@ function urlencode(obj) {
 
 async function tryListDocs() {
   try {
-<<<<<<< Updated upstream
-    const url = join("/docs");
-    return await getJSON(url).then((data) => (Array.isArray(data) ? data : []));
-=======
     return await getJSON(join("/api/docs"));
->>>>>>> Stashed changes
   } catch (e) {
     if (e.status === 404) {
       const url = join("/list");
@@ -93,12 +100,7 @@ async function tryCreateDoc(payload) {
   dbg("create payload", payload);
 
   try {
-<<<<<<< Updated upstream
-    const url = join("/docs");
-    return await getJSON(url, {
-=======
     return await getJSON(join("/api/docs"), {
->>>>>>> Stashed changes
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -154,32 +156,31 @@ export const api = {
     const arr = await tryListDocs();
     return arr.map((d) => ({ ...d, id: String(toId(d) ?? d.id) }));
   },
+
   async getDoc(id) {
     const data = await tryGetDoc(id);
     const normId = String(toId(data) ?? data.id ?? id);
     return { ...data, id: normId };
   },
+
   async createDoc(payload) {
     const data = await tryCreateDoc(payload);
     const normId = String(toId(data) ?? data?.id);
     return { ...data, id: normId };
   },
+
   async updateDoc(id, payload) {
     await tryUpdateDoc(id, payload);
     return null;
   },
-<<<<<<< Updated upstream
-  async deleteDoc() {
-    throw new Error("Delete not supported by backend");
-  },
-};
-=======
+
   async shareDoc(docId, email) {
     return await getJSON(join(`/api/docs/${encodeURIComponent(docId)}/share`), {
       method: "POST",
       body: JSON.stringify({ email }),
     });
   },
+
   async login(payload) {
     const res = await fetch(join("/api/auth/login"), {
       method: "POST",
@@ -188,10 +189,11 @@ export const api = {
     });
     const json = await res.json();
     if (!res.ok) {
-        throw new Error(json.errors?.[0]?.detail || "Inloggning misslyckades");
+      throw new Error(json.errors?.[0]?.detail || "Inloggning misslyckades");
     }
     return json;
   },
+
   async register(payload) {
     const res = await fetch(join("/api/auth/register"), {
       method: "POST",
@@ -200,34 +202,52 @@ export const api = {
     });
     const json = await res.json();
     if (!res.ok) {
-        throw new Error(json.errors?.[0]?.detail || "Registrering misslyckades");
+      throw new Error(json.errors?.[0]?.detail || "Registrering misslyckades");
     }
     return json;
   },
+
   async listComments(documentId) {
-    return await getJSON(join(`/api/docs/${encodeURIComponent(documentId)}/comments`));
+    return await getJSON(
+      join(`/api/docs/${encodeURIComponent(documentId)}/comments`)
+    );
   },
+
   async addComment(payload) {
-    return await getJSON(join(`/api/docs/${encodeURIComponent(payload.documentId)}/comments`), {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    return await getJSON(
+      join(`/api/docs/${encodeURIComponent(payload.documentId)}/comments`),
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
   },
-  async deleteDoc() { throw new Error("Delete not supported by backend"); },
+
+  async deleteDoc() {
+    throw new Error("Delete not supported by backend");
+  },
+
   async executeCode(documentId, code) {
-    const response = await fetch(join(`/api/docs/${encodeURIComponent(documentId)}/execute`), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders()
-      },
-      body: JSON.stringify({ code }),
-    });
+    const response = await fetch(
+      join(`/api/docs/${encodeURIComponent(documentId)}/execute`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ code }),
+      }
+    );
+
     const data = await response.json();
+
     if (!response.ok) {
-        throw new Error(data.errors?.[0]?.detail || data.message || "Execution failed");
+      throw new Error(
+        data.errors?.[0]?.detail || data.message || "Execution failed"
+      );
     }
+
     return data;
-  }
+  },
 };
->>>>>>> Stashed changes
