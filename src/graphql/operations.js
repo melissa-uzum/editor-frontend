@@ -158,12 +158,3 @@ export const DELETE_COMMENT = gql`
     deleteComment(id: $id)
   }
 `;
-
-export const EXECUTE_CODE = gql`
-  mutation ExecuteCode($codeBase64: String!) {
-    executeCode(codeBase64: $codeBase64) {
-      stdout
-      stderr
-    }
-  }
-`;

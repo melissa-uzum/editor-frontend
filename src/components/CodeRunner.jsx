@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useMutation } from "@apollo/client/react";
-import { EXECUTE_CODE } from "../graphql/operations";
 
 function toBase64(str) {
   try {
@@ -10,44 +8,56 @@ function toBase64(str) {
   }
 }
 
+function fromBase64(str) {
+  try {
+    return decodeURIComponent(escape(atob(str || "")));
+  } catch {
+    return atob(str || "");
+  }
+}
+
 export default function CodeRunner({ code }) {
   const [out, setOut] = useState("No output");
   const [err, setErr] = useState("");
-
-  const [executeCode, { loading }] = useMutation(EXECUTE_CODE);
+  const [loading, setLoading] = useState(false);
 
   async function run(e) {
     e.preventDefault();
     e.stopPropagation();
 
+    setLoading(true);
     setErr("");
     setOut("Running...");
 
     try {
-      const codeBase64 = toBase64(code || "");
-
-      const response = await executeCode({
-        variables: { codeBase64 },
+      const response = await fetch("https://execjs.emilfolino.se/code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: toBase64(code || ""),
+        }),
       });
 
-      const result = response?.data?.executeCode;
+      const json = await response.json();
 
-      if (!result) {
+      if (!response.ok) {
+        throw new Error(json?.errors?.[0]?.detail || json?.message || "Execution failed");
+      }
+
+      if (!json?.data) {
         throw new Error("Ingen exekveringsdata returnerades.");
       }
 
-      const stdout = result.stdout || "";
-      const stderr = result.stderr || "";
-
-      if (stderr) {
-        setErr(stderr);
-      }
-
-      setOut(stdout || (stderr ? "Execution finished with errors" : "No output"));
+      const decoded = fromBase64(json.data);
+      setOut(decoded || "No output");
     } catch (error) {
       console.error(error);
       setErr("Exekveringsfel: " + (error?.message || error));
       setOut("No output");
+    } finally {
+      setLoading(false);
     }
   }
 
