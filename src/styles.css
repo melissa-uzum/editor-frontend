@@ -275,7 +275,6 @@ footer {
 #root .doc-list li+li {
     margin-top: 0 !important;
 }
-
 .comments-panel {
     display: grid;
     gap: 1rem;

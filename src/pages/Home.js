@@ -39,9 +39,7 @@ export default function Home() {
   }
 
   if (loading) return <p>Laddar…</p>;
-  if (error) {
-    return <p style={{ color: "crimson" }}>Fel: {error.message}</p>;
-  }
+  if (error) return <p style={{ color: "crimson" }}>Fel: {error.message}</p>;
 
   const docs = data?.documents || [];
 

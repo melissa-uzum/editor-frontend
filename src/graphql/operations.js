@@ -32,15 +32,6 @@ export const LOGIN = gql`
   }
 `;
 
-export const EXECUTE_CODE = gql`
-  mutation ExecuteCode($codeBase64: String!) {
-    executeCode(codeBase64: $codeBase64) {
-      stdout
-      stderr
-    }
-  }
-`;
-
 export const REGISTER = gql`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
@@ -115,6 +106,8 @@ export const SHARE_DOC = gql`
   mutation ShareDoc($id: ID!, $email: String!) {
     shareDocument(id: $id, email: $email) {
       id
+      title
+      content
     }
   }
 `;
@@ -137,12 +130,6 @@ export const LIST_COMMENTS = gql`
   }
 `;
 
-export const DELETE_COMMENT = gql`
-  mutation DeleteComment($id: ID!) {
-    deleteComment(id: $id)
-  }
-`;
-
 export const ADD_COMMENT = gql`
   mutation AddComment($input: CommentInput!) {
     createComment(input: $input) {
@@ -157,6 +144,21 @@ export const ADD_COMMENT = gql`
         id
         username
       }
+    }
+  }
+`;
+
+export const DELETE_COMMENT = gql`
+  mutation DeleteComment($id: ID!) {
+    deleteComment(id: $id)
+  }
+`;
+
+export const EXECUTE_CODE = gql`
+  mutation ExecuteCode($codeBase64: String!) {
+    executeCode(codeBase64: $codeBase64) {
+      stdout
+      stderr
     }
   }
 `;

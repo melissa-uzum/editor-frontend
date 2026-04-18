@@ -21,6 +21,7 @@ export default function CodeRunner({ code }) {
     e.stopPropagation();
 
     setErr("");
+    setOut("Running...");
 
     try {
       const codeBase64 = toBase64(code || "");
@@ -52,34 +53,16 @@ export default function CodeRunner({ code }) {
 
   return (
     <div style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={run} disabled={loading || !code?.trim()}>
-          Kör
-        </button>
-        {loading && <span>Kör…</span>}
-      </div>
+      <button type="button" onClick={run} disabled={loading}>
+        {loading ? "Exekverar..." : "Kör kod"}
+      </button>
 
-      {err && (
-        <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>
-          {err}
+      {err ? (
+        <pre style={{ color: "crimson" }}>{err}</pre>
+      ) : (
+        <pre style={{ background: "#0b1020", color: "#fff", padding: 10 }}>
+          {out}
         </pre>
-      )}
-
-      {out !== "" && (
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Output</div>
-          <pre
-            style={{
-              background: "#0b1020",
-              color: "#c7e1ff",
-              padding: 12,
-              borderRadius: 6,
-              overflow: "auto",
-            }}
-          >
-            {out}
-          </pre>
-        </div>
       )}
     </div>
   );

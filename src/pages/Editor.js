@@ -231,7 +231,6 @@ export default function Editor({ mode }) {
             input: {
               title,
               content,
-              type: currentType,
             },
           },
         });
@@ -351,7 +350,7 @@ export default function Editor({ mode }) {
 
       <div style={{ display: "flex", gap: 12 }}>
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Sparar…" : isCreate ? "Skapa" : "Spara"}
+          {saving ? "Sparar…" : "Spara"}
         </button>
       </div>
     </form>

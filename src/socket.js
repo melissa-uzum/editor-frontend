@@ -34,7 +34,7 @@ function ensure() {
 
   socket = io(base, {
     path: "/socket.io",
-    transports: ["websocket", "polling"],
+    transports: ["websocket"],
     auth: { token: getToken() },
     withCredentials: true,
   });
@@ -54,7 +54,6 @@ export function disconnect() {
     currentCommentsDocId = null;
   }
 }
-
 
 export function joinDoc(documentId, callback) {
   const s = ensure();
@@ -108,7 +107,6 @@ export function sendDocumentUpdate(payload, callback) {
     callback
   );
 }
-
 
 export function joinComments(documentId, callback) {
   const s = ensure();
