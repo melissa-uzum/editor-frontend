@@ -278,38 +278,139 @@ footer {
 
 .comments-panel {
     display: grid;
-    gap: 8px;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.75rem;
+    background: #fff;
+}
+
+.comments-panel__header h3,
+.comments-panel__overview h4,
+.comments-panel__line-comments h4 {
+    margin: 0 0 0.4rem;
+}
+
+.comments-panel__selected {
+    margin: 0;
+    color: #555;
 }
 
 .comment-form {
-    display: grid;
-    grid-template-columns: 90px 1fr auto;
-    gap: 8px;
-    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.comment-form input {
+    flex: 1;
+    min-width: 220px;
 }
 
 .comment-list {
     list-style: none;
+    margin: 0;
     padding: 0;
-    margin: 8px 0 0;
     display: grid;
-    gap: 6px;
+    gap: 0.75rem;
+}
+
+.comment-item {
+    padding: 0.75rem;
+    border: 1px solid #e3e3e3;
+    border-radius: 0.6rem;
+    background: #fafafa;
+}
+
+.comment-item__top {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
 }
 
 .comment-line {
     font-weight: 600;
-    margin-right: 8px;
 }
 
-.comment-empty {
-    opacity: .7;
+.comment-author {
+    color: #666;
 }
 
-.share-panel {
+.comment-line-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.comment-line-badge {
+    border: 1px solid #ccc;
+    background: #fff;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.comment-line-badge.is-active {
+    border-color: #222;
+    background: #f0f0f0;
+}
+
+.editor-text-mode {
     display: grid;
-    gap: 10px;
+    gap: 1rem;
 }
 
+.line-picker {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.line-picker__list {
+    display: grid;
+    gap: 0.35rem;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    background: #fff;
+}
+
+.line-picker__row {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    width: 100%;
+    text-align: left;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.line-picker__row:hover {
+    background: #f7f7f7;
+}
+
+.line-picker__row.is-selected {
+    background: #eef3ff;
+    border-color: #b9c8ff;
+}
+
+.line-picker__number {
+    font-weight: 700;
+    color: #666;
+}
+
+.line-picker__text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: monospace;
+}
 .share-form {
     display: flex;
     gap: 10px;

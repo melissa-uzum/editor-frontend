@@ -3,18 +3,22 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Login from "./Login";
-import { api } from "../api.gql";
 import { auth } from "../auth";
 
-jest.mock("../api.gql", () => ({
-  api: { login: jest.fn() },
+const mockNavigate = jest.fn();
+const mockLoginMutation = jest.fn();
+
+jest.mock("../graphql/operations", () => ({
+  LOGIN: {},
 }));
 
 jest.mock("../auth", () => ({
   auth: { setToken: jest.fn() },
 }));
 
-const mockNavigate = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useMutation: () => [mockLoginMutation, { loading: false }],
+}));
 
 jest.mock("react-router-dom", () => {
   const actual = jest.requireActual("react-router-dom");
@@ -30,9 +34,14 @@ beforeEach(() => {
 
 test("Login: loggar in och navigerar", async () => {
   const user = userEvent.setup();
-  api.login.mockResolvedValue({
-    token: "FAKE_TOKEN",
-    user: { id: "1", email: "a@b.com" },
+
+  mockLoginMutation.mockResolvedValue({
+    data: {
+      login: {
+        token: "FAKE_TOKEN",
+        user: { id: "1", email: "a@b.com" },
+      },
+    },
   });
 
   render(
@@ -43,20 +52,27 @@ test("Login: loggar in och navigerar", async () => {
 
   await user.type(screen.getByPlaceholderText("E-post"), "a@b.com");
   await user.type(screen.getByPlaceholderText("Lösenord"), "secret");
-  await user.click(screen.getByRole("button", { name: /Logga in/i }));
+  await user.click(screen.getByRole("button", { name: /logga in/i }));
 
-  await waitFor(() =>
-    expect(api.login).toHaveBeenCalledWith({ email: "a@b.com", password: "secret" })
-  );
+  await waitFor(() => {
+    expect(auth.setToken).toHaveBeenCalledWith("FAKE_TOKEN");
+  });
 
-  await waitFor(() => expect(auth.setToken).toHaveBeenCalledWith("FAKE_TOKEN"));
-
-  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/"));
+  await waitFor(() => {
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+  });
 });
 
 test("Login: visar fel om token saknas", async () => {
   const user = userEvent.setup();
-  api.login.mockResolvedValue({ token: null });
+
+  mockLoginMutation.mockResolvedValue({
+    data: {
+      login: {
+        token: null,
+      },
+    },
+  });
 
   render(
     <MemoryRouter>
@@ -66,7 +82,7 @@ test("Login: visar fel om token saknas", async () => {
 
   await user.type(screen.getByPlaceholderText("E-post"), "a@b.com");
   await user.type(screen.getByPlaceholderText("Lösenord"), "secret");
-  await user.click(screen.getByRole("button", { name: /Logga in/i }));
+  await user.click(screen.getByRole("button", { name: /logga in/i }));
 
-  expect(await screen.findByText(/Ingen token/i)).toBeInTheDocument();
+  expect(await screen.findByText(/ingen token/i)).toBeInTheDocument();
 });

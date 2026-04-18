@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.gql";
@@ -18,13 +19,51 @@ export default function Home() {
     try {
       await api.deleteDoc(id);
       setDocs(prev => prev.filter(x => x.id !== id));
+=======
+import { useMutation, useQuery } from "@apollo/client/react";import { Link, useNavigate } from "react-router-dom";
+import { DELETE_DOC, GET_DOCUMENTS } from "../graphql/operations";
+import { auth } from "../auth";
+
+export default function Home() {
+  const navigate = useNavigate();
+
+  const { data, loading, error, refetch } = useQuery(GET_DOCUMENTS, {
+    fetchPolicy: "network-only",
+    onError: (err) => {
+      const msg = String(err?.message || "");
+      if (msg.includes("Authentication required")) {
+        auth.clear();
+        navigate("/login");
+      }
+    },
+  });
+
+  const [deleteDocument, { loading: deleting }] = useMutation(DELETE_DOC, {
+    onError: (err) => {
+      const msg = String(err?.message || "");
+      if (msg.includes("Authentication required")) {
+        auth.clear();
+        navigate("/login");
+      }
+    },
+  });
+
+  async function handleDelete(id) {
+    try {
+      await deleteDocument({
+        variables: { id: String(id) },
+      });
+      await refetch();
+>>>>>>> Stashed changes
     } catch (e) {
-      setError(String(e.message || e));
+      console.error(e);
     }
   }
 
   if (loading) return <p>Laddar…</p>;
-  if (error) return <p style={{ color: "crimson" }}>Fel: {error}</p>;
+  if (error) return <p style={{ color: "crimson" }}>Fel: {error.message}</p>;
+
+  const docs = data?.documents || [];
 
   return (
     <>
@@ -39,6 +78,7 @@ export default function Home() {
               className="btn"
               onClick={() => handleDelete(d.id)}
               aria-label={`Ta bort ${d.title || "dokument"}`}
+              disabled={deleting}
             >
               Ta bort
             </button>

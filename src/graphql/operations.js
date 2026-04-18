@@ -1,8 +1,19 @@
 import { gql } from "@apollo/client";
 
+<<<<<<< Updated upstream
 export const EXECUTE_CODE = gql`
   mutation ExecuteCode($codeBase64: String!) {
     executeCode(codeBase64: $codeBase64)
+=======
+export const GET_DOCUMENTS = gql`
+  query GetDocuments {
+    documents {
+      id
+      title
+      content
+      type
+    }
+>>>>>>> Stashed changes
   }
 `;
 
@@ -15,6 +26,15 @@ export const LOGIN = gql`
     login(input: $input) {
       token
       user { id email }
+    }
+  }
+`;
+
+export const EXECUTE_CODE = gql`
+  mutation ExecuteCode($codeBase64: String!) {
+    executeCode(codeBase64: $codeBase64) {
+      stdout
+      stderr
     }
   }
 `;
@@ -48,7 +68,14 @@ export const CREATE_DOC = gql`
 
 export const UPDATE_DOC = gql`
   mutation UpdateDoc($id:ID!, $input: DocumentUpdateInput!) {
-    updateDocument(id:$id, input:$input) { id title content type updatedAt createdAt }
+    updateDocument(id:$id, input:$input) {
+      id
+      title
+      content
+      type
+      updatedAt
+      createdAt
+    }
   }
 `;
 
@@ -76,6 +103,12 @@ export const LIST_COMMENTS = gql`
       updatedAt
       author { id username }
     }
+  }
+`;
+
+export const DELETE_COMMENT = gql`
+  mutation DeleteComment($id: ID!) {
+    deleteComment(id: $id)
   }
 `;
 

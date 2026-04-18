@@ -1,162 +1,297 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api.gql";
+import { useMutation, useQuery } from "@apollo/client/react";
+import {
+  ADD_COMMENT,
+  DELETE_COMMENT,
+  LIST_COMMENTS,
+} from "../graphql/operations";
 import {
   joinComments,
   leaveComments,
   onCommentAdded,
   onCommentDeleted,
-  sendCommentAdd,
-  sendCommentDelete,
 } from "../socket";
 
-function toLines(text) {
-  return (text || "").split(/\r?\n/);
+function toId(x) {
+  return x?.id ?? x?._id ?? "";
 }
 
-const toId = (x) => x?.id ?? x?._id;
+function groupByLine(items) {
+  const grouped = {};
 
-export default function CommentsPanel({ docId, content }) {
+  for (const item of items || []) {
+    const key = Number(item?.lineNumber || 0);
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(item);
+  }
+
+  return grouped;
+}
+
+export default function CommentsPanel({
+  docId,
+  selectedLine,
+  onSelectLine,
+}) {
   const [items, setItems] = useState([]);
-  const [line, setLine] = useState(1);
   const [text, setText] = useState("");
-  const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
 
-  const lines = useMemo(() => toLines(content), [content]);
+  const {
+    data,
+    loading,
+    error: queryError,
+    refetch,
+  } = useQuery(LIST_COMMENTS, {
+    variables: { documentId: String(docId) },
+    skip: !docId,
+    fetchPolicy: "network-only",
+  });
+
+  const [addComment, { loading: posting }] = useMutation(ADD_COMMENT);
+  const [deleteComment, { loading: deleting }] = useMutation(DELETE_COMMENT);
 
   useEffect(() => {
-    let alive = true;
-
-    async function load() {
-      if (!docId) return;
-      try {
-        const list = await api.listComments(docId);
-        if (!alive) return;
-        setItems(Array.isArray(list) ? list : []);
-      } catch {
-        if (!alive) return;
-        setItems([]);
-      }
+    if (queryError) {
+      setError(String(queryError?.message || queryError));
+      return;
     }
 
+    if (data?.comments) {
+      setItems(data.comments);
+    }
+  }, [data, queryError]);
+
+  useEffect(() => {
     if (!docId) {
-      setItems([]);
-      return () => {};
+      return;
     }
 
-    setError("");
-    joinComments(docId);
-    load();
+    joinComments(String(docId));
 
-    onCommentAdded((payload) => {
+    const handleAdded = (payload) => {
       const c = payload?.comment ?? payload;
-      if (!c) return;
 
-      const incomingDocId = String(c?.documentId ?? "");
-      if (incomingDocId !== String(docId)) return;
-
-      const id = String(toId(c) ?? "");
+      if (String(c?.documentId) !== String(docId)) {
+        return;
+      }
 
       setItems((prev) => {
-        if (id && prev.some((x) => String(toId(x)) === id)) {
+        const exists = prev.some(
+          (x) => String(toId(x)) === String(toId(c))
+        );
+
+        if (exists) {
           return prev;
         }
-        return [{ ...c, id }, ...prev];
-      });
-    });
 
-    onCommentDeleted((payload) => {
-      const id = String(payload?.commentId ?? "");
-      if (!id) return;
+        return [c, ...prev];
+      });
+    };
+
+    const handleDeleted = (payload) => {
+      const commentId = String(payload?.commentId ?? "");
 
       setItems((prev) =>
-        prev.filter((c) => String(toId(c)) !== id)
+        prev.filter((c) => String(toId(c)) !== commentId)
       );
-    });
+    };
+
+    onCommentAdded(handleAdded);
+    onCommentDeleted(handleDeleted);
 
     return () => {
-      alive = false;
-      leaveComments(docId);
+      leaveComments(String(docId));
     };
   }, [docId]);
 
-  function handleDelete(commentId) {
-    if (!commentId || !docId) return;
+  const grouped = useMemo(() => groupByLine(items), [items]);
 
-    setItems((prev) => prev.filter((c) => String(toId(c)) !== String(commentId)));
+  const selectedLineComments = useMemo(() => {
+    const lineKey = Number(selectedLine || 0);
+    return grouped[lineKey] || [];
+  }, [grouped, selectedLine]);
 
-    sendCommentDelete(
-      { commentId: String(commentId), documentId: String(docId) },
-      (ack) => {
-        if (ack?.status !== "ok") {
-          api.listComments(docId)
-            .then((list) => setItems(Array.isArray(list) ? list : []))
-            .catch(() => {});
-        }
-      }
-    );
-  }
+  const lineNumbersWithComments = useMemo(() => {
+    return Object.keys(grouped).map((x) => Number(x));
+  }, [grouped]);
 
   async function submit() {
-    if (!docId) return;
-    const clean = text.trim();
-    if (!clean) return;
+    if (!docId) {
+      return;
+    }
 
-    setPosting(true);
+    if (!selectedLine) {
+      setError("Välj en rad i dokumentet först.");
+      return;
+    }
+
+    const clean = text.trim();
+    if (!clean) {
+      return;
+    }
+
     setError("");
 
-    const payload = {
-      documentId: String(docId),
-      lineNumber: Number(line) || 1,
-      content: clean,
-    };
+    try {
+      const res = await addComment({
+        variables: {
+          input: {
+            documentId: String(docId),
+            lineNumber: Number(selectedLine),
+            content: clean,
+          },
+        },
+      });
 
-    sendCommentAdd(payload, (ack) => {
-      if (ack?.status !== "ok") {
-        setError(ack?.message || "Kunde inte skapa kommentar");
+      const created = res?.data?.createComment;
+
+      if (created) {
+        setItems((prev) => {
+          const exists = prev.some(
+            (x) => String(toId(x)) === String(toId(created))
+          );
+
+          if (exists) {
+            return prev;
+          }
+
+          return [created, ...prev];
+        });
       }
-      setPosting(false);
-    });
 
-    setText("");
+      setText("");
+    } catch (e) {
+      setError(String(e?.message || e));
+    }
+  }
+
+  async function handleDelete(commentId) {
+    if (!commentId) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      const res = await deleteComment({
+        variables: { id: String(commentId) },
+      });
+
+      if (res?.data?.deleteComment) {
+        setItems((prev) =>
+          prev.filter((c) => String(toId(c)) !== String(commentId))
+        );
+        return;
+      }
+
+      await refetch();
+    } catch (e) {
+      setError(String(e?.message || e));
+    }
   }
 
   return (
     <div className="comments-panel">
-      <div className="comment-form">
-        <select value={line} onChange={(e) => setLine(e.target.value)}>
-          {lines.map((_, i) => (
-            <option key={i} value={i + 1}>
-              Rad {i + 1}
-            </option>
-          ))}
-        </select>
+      <div className="comments-panel__header">
+        <h3>Kommentarer</h3>
+        {selectedLine ? (
+          <p className="comments-panel__selected">
+            Vald rad: <strong>{selectedLine}</strong>
+          </p>
+        ) : (
+          <p className="comments-panel__selected">
+            Klicka på en rad i dokumentet för att kommentera.
+          </p>
+        )}
+      </div>
 
+      <div className="comment-form">
         <input
-          placeholder="Ny kommentar…"
+          placeholder={
+            selectedLine
+              ? `Skriv kommentar för rad ${selectedLine}…`
+              : "Välj först en rad i dokumentet…"
+          }
           value={text}
           onChange={(e) => setText(e.target.value)}
+          disabled={!selectedLine}
         />
 
-        <button onClick={submit} disabled={posting || !text.trim()}>
-          {posting ? "Skickar…" : "Lägg till"}
+        <button
+          type="button"
+          onClick={submit}
+          disabled={posting || !selectedLine || !text.trim()}
+        >
+          {posting ? "Skickar…" : "Lägg till kommentar"}
         </button>
       </div>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p style={{ color: "crimson" }}>Fel: {error}</p>}
+      {loading && <p>Laddar kommentarer…</p>}
 
-      <ul className="comment-list">
-        {items.map((c) => (
-          <li key={String(toId(c))}>
-            <span className="comment-line">Rad {c.lineNumber}</span>
-            <span className="comment-text">{c.content}</span>
-            <button onClick={() => handleDelete(toId(c))}>
-              Ta bort
-            </button>
-          </li>
-        ))}
-        {!items.length && <li>Inga kommentarer ännu.</li>}
-      </ul>
+      {selectedLine ? (
+        <div className="comments-panel__line-comments">
+          <h4>Kommentarer för rad {selectedLine}</h4>
+          <ul className="comment-list">
+            {selectedLineComments.map((c) => (
+              <li key={String(toId(c))} className="comment-item">
+                <div className="comment-item__top">
+                  <span className="comment-line">Rad {c.lineNumber}</span>
+                  {c.author?.username && (
+                    <span className="comment-author">
+                      av {c.author.username}
+                    </span>
+                  )}
+                </div>
+
+                <div className="comment-text">{c.content}</div>
+
+                <button
+                  type="button"
+                  onClick={() => handleDelete(toId(c))}
+                  disabled={deleting}
+                >
+                  Ta bort
+                </button>
+              </li>
+            ))}
+
+            {!loading && selectedLineComments.length === 0 && (
+              <li>Inga kommentarer på denna rad ännu.</li>
+            )}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="comments-panel__overview">
+        <h4>Rader med kommentarer</h4>
+
+        {lineNumbersWithComments.length === 0 ? (
+          <p>Inga kommentarer ännu.</p>
+        ) : (
+          <div className="comment-line-badges">
+            {lineNumbersWithComments
+              .sort((a, b) => a - b)
+              .map((lineNumber) => (
+                <button
+                  key={lineNumber}
+                  type="button"
+                  className={
+                    Number(selectedLine) === Number(lineNumber)
+                      ? "comment-line-badge is-active"
+                      : "comment-line-badge"
+                  }
+                  onClick={() => onSelectLine(lineNumber)}
+                >
+                  Rad {lineNumber} ({grouped[lineNumber]?.length || 0})
+                </button>
+              ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

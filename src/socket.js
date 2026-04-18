@@ -12,10 +12,29 @@ function getToken() {
   }
 }
 
-function ensure() {
-  if (socket && socket.connected) return socket;
+function getBaseUrl() {
+  const envUrl = (process.env.REACT_APP_SOCKET_URL || "").trim();
+  if (envUrl) {
+    return envUrl;
+  }
 
+<<<<<<< Updated upstream
   const base = (process.env.REACT_APP_SOCKET_URL || "").trim();
+=======
+  if (window.location.hostname === "localhost") {
+    return "http://localhost:3000";
+  }
+
+  return "https://rg-ssr-editor-nilb24-dnbkc9c2edf7gkfs.swedencentral-01.azurewebsites.net";
+}
+
+function ensure() {
+  if (socket && socket.connected) {
+    return socket;
+  }
+
+  const base = getBaseUrl();
+>>>>>>> Stashed changes
 
   socket = io(base || undefined, {
     path: "/socket.io",
@@ -45,7 +64,10 @@ export function disconnect() {
 export function joinDoc(documentId, callback) {
   const s = ensure();
   const id = String(documentId || "").trim();
-  if (!id || currentDocId === id) return;
+
+  if (!id || currentDocId === id) {
+    return;
+  }
 
   s.emit("document:join", { documentId: id }, callback);
   currentDocId = id;
@@ -54,10 +76,16 @@ export function joinDoc(documentId, callback) {
 export function leaveDoc(documentId, callback) {
   const s = ensure();
   const id = String(documentId || "").trim();
-  if (!id) return;
+
+  if (!id) {
+    return;
+  }
 
   s.emit("document:leave", { documentId: id }, callback);
-  if (currentDocId === id) currentDocId = null;
+
+  if (currentDocId === id) {
+    currentDocId = null;
+  }
 }
 
 export function onDocumentUpdate(handler) {
@@ -69,7 +97,10 @@ export function onDocumentUpdate(handler) {
 export function sendDocumentUpdate(payload, callback) {
   const s = ensure();
   const id = String(payload?.documentId ?? payload?.id ?? "").trim();
-  if (!id) return;
+
+  if (!id) {
+    return;
+  }
 
   s.emit(
     "document:update",
@@ -77,6 +108,7 @@ export function sendDocumentUpdate(payload, callback) {
       documentId: id,
       title: String(payload?.title ?? ""),
       content: String(payload?.content ?? ""),
+      type: String(payload?.type ?? "text"),
     },
     callback
   );
@@ -87,7 +119,10 @@ export function sendDocumentUpdate(payload, callback) {
 export function joinComments(documentId, callback) {
   const s = ensure();
   const id = String(documentId || "").trim();
-  if (!id || currentCommentsDocId === id) return;
+
+  if (!id || currentCommentsDocId === id) {
+    return;
+  }
 
   s.emit("comments:join", { documentId: id }, callback);
   currentCommentsDocId = id;
@@ -96,10 +131,16 @@ export function joinComments(documentId, callback) {
 export function leaveComments(documentId, callback) {
   const s = ensure();
   const id = String(documentId || "").trim();
-  if (!id) return;
+
+  if (!id) {
+    return;
+  }
 
   s.emit("comments:leave", { documentId: id }, callback);
-  if (currentCommentsDocId === id) currentCommentsDocId = null;
+
+  if (currentCommentsDocId === id) {
+    currentCommentsDocId = null;
+  }
 }
 
 export function onCommentAdded(handler) {
@@ -126,6 +167,10 @@ export function sendCommentAdd(payload, callback) {
   const lineNumber = Number(payload?.lineNumber);
   const content = String(payload?.content ?? "");
 
+  if (!documentId || !lineNumber || !content.trim()) {
+    return;
+  }
+
   s.emit("comments:add", { documentId, lineNumber, content }, callback);
 }
 
@@ -134,7 +179,9 @@ export function sendCommentDelete(payload, callback) {
   const commentId = String(payload?.commentId ?? "").trim();
   const documentId = String(payload?.documentId ?? "").trim();
 
-  if (!commentId) return;
+  if (!commentId) {
+    return;
+  }
 
   s.emit("comments:delete", { commentId, documentId }, callback);
 }
