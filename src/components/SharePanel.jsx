@@ -16,9 +16,13 @@ export default function SharePanel({ docId, onSuccess }) {
     setLoading(true);
 
     try {
-      await shareDoc({
-        variables: { id: docId, email: email.trim() },
+      const { data } = await shareDoc({
+        variables: { id: String(docId), email: email.trim() },
       });
+
+      if (data?.shareDocument === false) {
+        throw new Error("Delning misslyckades");
+      }
 
       setStatus("Delningsinbjudan skickades framgångsrikt!");
       setEmail("");
@@ -63,11 +67,7 @@ export default function SharePanel({ docId, onSuccess }) {
       </div>
 
       {status && (
-        <p
-          className={`share-status ${
-            status.includes("Fel") ? "error" : "success"
-          }`}
-        >
+        <p className={`share-status ${status.includes("Fel") ? "error" : "success"}`}>
           {status}
         </p>
       )}
