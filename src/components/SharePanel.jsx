@@ -10,33 +10,40 @@ export default function SharePanel({ docId, onSuccess }) {
   const [shareDoc] = useMutation(SHARE_DOC);
 
   async function onShare() {
-    if (!docId || !email.trim()) return;
+  if (!docId || !email.trim()) return;
 
-    setStatus("");
-    setLoading(true);
+  setStatus("");
+  setLoading(true);
 
-    try {
-      const { data } = await shareDoc({
-        variables: { id: String(docId), email: email.trim() },
-      });
+  try {
+    const { data, errors } = await shareDoc({
+      variables: {
+        id: String(docId),
+        email: email.trim(),
+      },
+    });
 
-      if (data?.shareDocument === false) {
-        throw new Error("Delning misslyckades");
-      }
-
-      setStatus("Delningsinbjudan skickades framgångsrikt!");
-      setEmail("");
-
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err) {
-      console.error("Share error:", err);
-      setStatus(`Fel: ${err.message || "Ett okänt fel inträffade"}`);
-    } finally {
-      setLoading(false);
+    if (errors?.length) {
+      throw new Error(errors[0].message);
     }
+
+    if (!data?.shareDocument) {
+      throw new Error("Delning misslyckades (null från backend)");
+    }
+
+    setStatus("Delningsinbjudan skickades!");
+    setEmail("");
+
+    if (onSuccess) {
+      onSuccess(data.shareDocument);
+    }
+  } catch (err) {
+    console.error("Share error:", err);
+    setStatus(`Fel: ${err.message}`);
+  } finally {
+    setLoading(false);
   }
+}
 
   function onKeyDown(e) {
     if (e.key === "Enter") {
