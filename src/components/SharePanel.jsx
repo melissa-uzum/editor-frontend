@@ -6,47 +6,34 @@ export default function SharePanel({ docId, onSuccess }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [shareDoc] = useMutation(SHARE_DOC);
 
   async function onShare() {
-  if (!docId || !email.trim()) return;
-
-  setStatus("");
-  setLoading(true);
-
-  try {
-    const response = await shareDoc({
-      variables: {
-        id: String(docId),
-        email: email.trim(),
-      },
-      errorPolicy: "all",
-    });
-
-    const { data, errors } = response;
-
-    if (data === undefined || data === null) {
-  throw new Error("Delning misslyckades. Backend returnerade null.");
+    if (!docId || !email.trim()) return;
+    setStatus("");
+    setLoading(true);
+    try {
+      const response = await shareDoc({
+        variables: {
+          id: String(docId),
+          email: email.trim(),
+        },
+        errorPolicy: "all",
+      });
+      const { errors } = response;
+      if (errors?.length) {
+        throw new Error(errors[0].message);
+      }
+      setStatus("Delningsinbjudan skickades!");
+      setEmail("");
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      console.error("Share error:", err);
+      setStatus(`Fel: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    if (!data?.shareDocument) {
-      throw new Error("Delning misslyckades. Backend returnerade null.");
-    }
-
-    setStatus("Delningsinbjudan skickades!");
-    setEmail("");
-
-    if (onSuccess) {
-      onSuccess(data.shareDocument);
-    }
-  } catch (err) {
-    console.error("Share error:", err);
-    setStatus(`Fel: ${err.message}`);
-  } finally {
-    setLoading(false);
   }
-}
 
   function onKeyDown(e) {
     if (e.key === "Enter") {
@@ -58,7 +45,6 @@ export default function SharePanel({ docId, onSuccess }) {
   return (
     <div className="share-panel">
       <h3>Dela dokument</h3>
-
       <div className="share-form">
         <input
           type="email"
@@ -75,7 +61,6 @@ export default function SharePanel({ docId, onSuccess }) {
           {loading ? "Delar…" : "Dela"}
         </button>
       </div>
-
       {status && (
         <p className={`share-status ${status.includes("Fel") ? "error" : "success"}`}>
           {status}
