@@ -1,5 +1,4 @@
 import { gql } from "@apollo/client";
-
 export const GET_DOCUMENTS = gql`
   query GetDocuments {
     documents {
@@ -10,7 +9,6 @@ export const GET_DOCUMENTS = gql`
     }
   }
 `;
-
 export const ME = gql`
   query Me {
     me {
@@ -19,7 +17,6 @@ export const ME = gql`
     }
   }
 `;
-
 export const LOGIN = gql`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
@@ -31,7 +28,6 @@ export const LOGIN = gql`
     }
   }
 `;
-
 export const REGISTER = gql`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
@@ -43,7 +39,6 @@ export const REGISTER = gql`
     }
   }
 `;
-
 export const DOCS = gql`
   query Docs {
     documents {
@@ -56,7 +51,6 @@ export const DOCS = gql`
     }
   }
 `;
-
 export const DOC = gql`
   query Doc($id: ID!) {
     document(id: $id) {
@@ -64,12 +58,12 @@ export const DOC = gql`
       title
       content
       type
+      owner
       updatedAt
       createdAt
     }
   }
 `;
-
 export const CREATE_DOC = gql`
   mutation CreateDoc($input: DocumentInput!) {
     createDocument(input: $input) {
@@ -82,7 +76,6 @@ export const CREATE_DOC = gql`
     }
   }
 `;
-
 export const UPDATE_DOC = gql`
   mutation UpdateDoc($id: ID!, $input: DocumentUpdateInput!) {
     updateDocument(id: $id, input: $input) {
@@ -95,19 +88,16 @@ export const UPDATE_DOC = gql`
     }
   }
 `;
-
 export const DELETE_DOC = gql`
   mutation DeleteDoc($id: ID!) {
     deleteDocument(id: $id)
   }
 `;
-
 export const SHARE_DOC = gql`
   mutation ShareDoc($id: ID!, $email: String!) {
     shareDocument(id: $id, email: $email)
   }
 `;
-
 export const LIST_COMMENTS = gql`
   query Comments($documentId: ID!) {
     comments(documentId: $documentId) {
@@ -125,7 +115,6 @@ export const LIST_COMMENTS = gql`
     }
   }
 `;
-
 export const ADD_COMMENT = gql`
   mutation AddComment($input: CommentInput!) {
     createComment(input: $input) {
@@ -143,7 +132,6 @@ export const ADD_COMMENT = gql`
     }
   }
 `;
-
 export const DELETE_COMMENT = gql`
   mutation DeleteComment($id: ID!) {
     deleteComment(id: $id)

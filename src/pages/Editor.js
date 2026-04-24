@@ -270,6 +270,8 @@ export default function Editor({ mode }) {
     return <p>Laddar…</p>;
   }
 
+console.log("owner:", data?.document?.owner);
+console.log("currentUserId:", currentUserId);
   const isOwner = currentUserId && data?.document?.owner === currentUserId;
 
   return (
