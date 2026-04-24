@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 function getToken() {
   try {
-    return localStorage.getItem("jwt") || "";
+    return localStorage.getItem("token") || "";
   } catch {
     return "";
   }

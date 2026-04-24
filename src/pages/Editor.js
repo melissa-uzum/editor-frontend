@@ -15,6 +15,7 @@ import CodeRunner from "../components/CodeRunner";
 import CommentsPanel from "../components/CommentsPanel";
 import SharePanel from "../components/SharePanel";
 import { auth } from "../auth";
+import { jwtDecode } from "jwt-decode";
 
 function splitLines(text) {
   return (text || "").split(/\r?\n/);
@@ -24,6 +25,17 @@ export default function Editor({ mode }) {
   const isCreate = mode === "create";
   const { id } = useParams();
   const nav = useNavigate();
+
+  const currentUserId = useMemo(() => {
+    try {
+      const token = auth.getToken();
+      if (!token) return null;
+      const decoded = jwtDecode(token);
+      return decoded?.id || null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const [docId, setDocId] = useState(isCreate ? "" : String(id || ""));
   const [title, setTitle] = useState("");
@@ -258,6 +270,8 @@ export default function Editor({ mode }) {
     return <p>Laddar…</p>;
   }
 
+  const isOwner = currentUserId && data?.document?.owner === currentUserId;
+
   return (
     <form
       onSubmit={onSubmit}
@@ -339,7 +353,7 @@ export default function Editor({ mode }) {
 
       {!isCreate && (
         <div style={{ display: "grid", gap: 12 }}>
-          <SharePanel docId={docId || id} />
+          {isOwner && <SharePanel docId={docId || id} />}
           <CommentsPanel
             docId={docId || id}
             selectedLine={selectedLine}

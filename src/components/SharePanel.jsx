@@ -16,19 +16,22 @@ export default function SharePanel({ docId, onSuccess }) {
   setLoading(true);
 
   try {
-    const { data, errors } = await shareDoc({
+    const response = await shareDoc({
       variables: {
         id: String(docId),
         email: email.trim(),
       },
+      errorPolicy: "all",
     });
 
-    if (errors?.length) {
-      throw new Error(errors[0].message);
+    const { data, errors } = response;
+
+    if (data === undefined || data === null) {
+  throw new Error("Delning misslyckades. Backend returnerade null.");
     }
 
     if (!data?.shareDocument) {
-      throw new Error("Delning misslyckades (null från backend)");
+      throw new Error("Delning misslyckades. Backend returnerade null.");
     }
 
     setStatus("Delningsinbjudan skickades!");

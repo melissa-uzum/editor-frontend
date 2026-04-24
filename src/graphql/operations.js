@@ -104,16 +104,7 @@ export const DELETE_DOC = gql`
 
 export const SHARE_DOC = gql`
   mutation ShareDoc($id: ID!, $email: String!) {
-    shareDocument(id: $id, email: $email) {
-      id
-      title
-      content
-      type
-      updatedAt
-      createdAt
-      owner
-      sharedWith
-    }
+    shareDocument(id: $id, email: $email)
   }
 `;
 
