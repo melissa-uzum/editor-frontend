@@ -84,7 +84,7 @@ test("skapar nytt dokument", async () => {
 
   await user.type(screen.getByLabelText(/titel/i), "Ny");
   await user.type(screen.getByLabelText(/innehåll/i), "Hej");
-  await user.click(screen.getByRole("button", { name: /skapa/i }));
+  await user.click(screen.getByRole("button", { name: /spara/i }));
 
   await waitFor(() => {
     expect(mockCreateDocument).toHaveBeenCalled();

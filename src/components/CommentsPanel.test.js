@@ -6,6 +6,19 @@ const mockAddComment = jest.fn();
 const mockDeleteComment = jest.fn();
 const mockRefetch = jest.fn();
 
+const mockCommentsData = {
+  comments: [
+    {
+      id: "c1",
+      documentId: "doc1",
+      lineNumber: 2,
+      content: "Testkommentar",
+      resolved: false,
+      author: { id: "u1", username: "mel" },
+    },
+  ],
+};
+
 jest.mock("../graphql/operations", () => ({
   ADD_COMMENT: { kind: "ADD_COMMENT" },
   DELETE_COMMENT: { kind: "DELETE_COMMENT" },
@@ -14,18 +27,7 @@ jest.mock("../graphql/operations", () => ({
 
 jest.mock("@apollo/client/react", () => ({
   useQuery: () => ({
-    data: {
-      comments: [
-        {
-          id: "c1",
-          documentId: "doc1",
-          lineNumber: 2,
-          content: "Testkommentar",
-          resolved: false,
-          author: { id: "u1", username: "mel" },
-        },
-      ],
-    },
+    data: mockCommentsData,
     loading: false,
     error: null,
     refetch: mockRefetch,
@@ -56,11 +58,7 @@ beforeEach(() => {
 
 test("visar befintliga kommentarer för vald rad", async () => {
   render(
-    <CommentsPanel
-      docId="doc1"
-      selectedLine={2}
-      onSelectLine={() => {}}
-    />
+    <CommentsPanel docId="doc1" selectedLine={2} onSelectLine={() => {}} />
   );
 
   await waitFor(() => {
@@ -83,11 +81,7 @@ test("lägger till kommentar för vald rad", async () => {
   });
 
   render(
-    <CommentsPanel
-      docId="doc1"
-      selectedLine={2}
-      onSelectLine={() => {}}
-    />
+    <CommentsPanel docId="doc1" selectedLine={2} onSelectLine={() => {}} />
   );
 
   const input = screen.getByPlaceholderText(/skriv kommentar för rad 2/i);
